@@ -11,6 +11,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+  const [homeBgUrl, setHomeBgUrl] = useState('');
 
   // New room state
   const [newRoom, setNewRoom] = useState({
@@ -35,8 +37,20 @@ const Dashboard = () => {
     }
   };
 
+  const fetchConfig = async () => {
+    try {
+      const { data } = await axios.get('/api/config');
+      if (data && data.homeBackgroundUrl) {
+        setHomeBgUrl(data.homeBackgroundUrl);
+      }
+    } catch (error) {
+      console.error('Failed to fetch config', error);
+    }
+  };
+
   useEffect(() => {
     fetchRooms();
+    fetchConfig();
   }, []);
 
   const handleCreateRoom = async (e) => {
@@ -63,6 +77,19 @@ const Dashboard = () => {
     }
   };
 
+  const handleUpdateConfig = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('token');
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      await axios.put('/api/config', { homeBackgroundUrl: homeBgUrl }, config);
+      setIsConfigModalOpen(false);
+      alert('Home background updated successfully!');
+    } catch (err) {
+      alert(err.response?.data?.message || err.message);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -70,7 +97,15 @@ const Dashboard = () => {
         <div className="px-4 py-6 sm:px-0">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold text-gray-900">Your Designs</h1>
-            <Button onClick={() => setIsModalOpen(true)}>Create New Design</Button>
+            <div className="flex space-x-4">
+              <button
+                onClick={() => setIsConfigModalOpen(true)}
+                className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition"
+              >
+                Update Home Background
+              </button>
+              <Button onClick={() => setIsModalOpen(true)}>Create New Design</Button>
+            </div>
           </div>
 
           {loading ? (
@@ -149,6 +184,22 @@ const Dashboard = () => {
           </div>
           <div className="mt-4 flex justify-end">
             <Button type="submit">Create</Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal isOpen={isConfigModalOpen} onClose={() => setIsConfigModalOpen(false)} title="Update Home Background">
+        <form onSubmit={handleUpdateConfig}>
+          <Input
+            label="Background Image URL"
+            id="bgUrl"
+            value={homeBgUrl}
+            onChange={(e) => setHomeBgUrl(e.target.value)}
+            required
+            placeholder="https://example.com/image.jpg"
+          />
+          <div className="mt-4 flex justify-end">
+            <Button type="submit">Save Changes</Button>
           </div>
         </form>
       </Modal>

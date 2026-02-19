@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import DesignStudio from './pages/DesignStudio';
+import Home from './pages/Home';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -17,6 +18,7 @@ function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<LoginPage />} />
 
         <Route
@@ -38,7 +40,7 @@ function App() {
         />
 
         {/* Default redirect */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );

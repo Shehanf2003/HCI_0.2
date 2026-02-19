@@ -6,6 +6,7 @@ const { notFound, errorHandler } = require('./middleware/errorHandler');
 
 const authRoutes = require('./routes/authRoutes');
 const apiRoutes = require('./routes/apiRoutes');
+const configRoutes = require('./routes/configRoutes');
 
 dotenv.config();
 
@@ -17,6 +18,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
+app.use('/api/config', configRoutes);
 app.use('/api', apiRoutes);
 
 app.get('/', (req, res) => {
