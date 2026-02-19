@@ -4,11 +4,7 @@ import axios from 'axios';
 
 const Home = () => {
   const [bgUrl, setBgUrl] = useState('');
-
-  // Use a default initially to avoid flash of no content if possible,
-  // but better to wait for fetch or just show default.
-  // The backend default is solid, but we can have a fallback here too.
-  const defaultBg = 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80';
+  const defaultBg = '/assets/HIC.png';
 
   useEffect(() => {
     const fetchConfig = async () => {
