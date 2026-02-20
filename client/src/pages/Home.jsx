@@ -1,25 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
 
 const Home = () => {
-  const [bgUrl, setBgUrl] = useState('');
-  const defaultBg = '/assets/HIC.png';
-
-  useEffect(() => {
-    const fetchConfig = async () => {
-      try {
-        const { data } = await axios.get('/api/config');
-        if (data && data.homeBackgroundUrl) {
-          setBgUrl(data.homeBackgroundUrl);
-        }
-      } catch (error) {
-        console.error('Failed to fetch config', error);
-      }
-    };
-    fetchConfig();
-  }, []);
-
   return (
     <div className="min-h-screen flex flex-col font-sans">
       {/* Navbar */}
@@ -44,13 +26,21 @@ const Home = () => {
 
       {/* Hero Section */}
       <header
-        className="flex-grow flex flex-col justify-center items-center text-center px-4 relative bg-cover bg-center h-screen"
-        style={{
-          backgroundImage: `url(${bgUrl || defaultBg})`
-        }}
+        className="flex-grow flex flex-col justify-center items-center text-center px-4 relative h-screen"
       >
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster="/assets/hero-bg.jpg"
+          className="absolute inset-0 w-full h-full object-cover z-0"
+        >
+          <source src="/assets/furniture-showcase.mp4" type="video/mp4" />
+        </video>
+
         {/* Dark Overlay */}
-        <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+        <div className="absolute inset-0 bg-black bg-opacity-40 z-10"></div>
 
         <div className="relative z-10 max-w-4xl mx-auto text-white px-4">
           <h1 className="text-5xl md:text-7xl font-serif font-bold mb-6 leading-tight drop-shadow-lg">
