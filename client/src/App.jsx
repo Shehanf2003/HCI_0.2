@@ -4,6 +4,7 @@ import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import DesignStudio from './pages/DesignStudio';
 import Home from './pages/Home';
+import Navbar from './components/Layout/Navbar';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -17,6 +18,7 @@ const ProtectedRoute = ({ children }) => {
 function App() {
   return (
     <Router>
+      <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<LoginPage />} />

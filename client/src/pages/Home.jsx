@@ -4,25 +4,6 @@ import { Link } from 'react-router-dom';
 const Home = () => {
   return (
     <div className="min-h-screen flex flex-col font-sans">
-      {/* Navbar */}
-      <nav className="absolute top-0 left-0 w-full z-20 flex justify-between items-center px-6 md:px-12 py-6">
-        <div className="text-2xl font-bold text-white tracking-wide">
-          Apex Interiors
-        </div>
-        <div className="hidden md:flex space-x-8 text-white font-medium text-sm tracking-wide">
-          <Link to="/" className="hover:text-gray-200 transition">Home</Link>
-          <span className="cursor-pointer hover:text-gray-200 transition">Portfolio</span>
-          <span className="cursor-pointer hover:text-gray-200 transition">3D Showroom</span>
-        </div>
-        <div>
-          <Link
-            to="/login"
-            className="bg-transparent border border-white text-white px-6 py-2 rounded-full hover:bg-white hover:text-gray-900 transition font-medium text-sm"
-          >
-            Designer Login
-          </Link>
-        </div>
-      </nav>
 
       {/* Hero Section */}
       <header

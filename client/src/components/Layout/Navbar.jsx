@@ -12,48 +12,31 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white shadow">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <Link to="/" className="text-xl font-bold text-gray-800">
-                FurnitureViz
-              </Link>
-            </div>
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              <Link
-                to="/dashboard"
-                className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-              >
-                Dashboard
-              </Link>
-              <Link
-                to="/design-studio"
-                className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-              >
-                Design Studio
-              </Link>
-            </div>
-          </div>
-          <div className="flex items-center">
-            {token ? (
-              <button
-                onClick={handleLogout}
-                className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Logout
-              </button>
-            ) : (
-              <Link
-                to="/login"
-                className="text-gray-500 hover:text-gray-700 px-3 py-2 rounded-md text-sm font-medium"
-              >
-                Login
-              </Link>
-            )}
-          </div>
-        </div>
+    <nav className="absolute top-0 left-0 w-full z-20 flex justify-between items-center px-6 md:px-12 py-6 bg-transparent">
+      <div className="text-2xl font-bold text-white tracking-wide">
+        Apex Interiors
+      </div>
+      <div className="hidden md:flex space-x-8 text-white font-medium text-sm tracking-wide">
+        <Link to="/" className="hover:text-gray-200 transition">Home</Link>
+        <span className="cursor-pointer hover:text-gray-200 transition">Portfolio</span>
+        <span className="cursor-pointer hover:text-gray-200 transition">3D Showroom</span>
+      </div>
+      <div>
+        {token ? (
+          <button
+            onClick={handleLogout}
+            className="bg-transparent border border-white text-white px-6 py-2 rounded-full hover:bg-white hover:text-gray-900 transition font-medium text-sm"
+          >
+            Logout
+          </button>
+        ) : (
+          <Link
+            to="/login"
+            className="bg-transparent border border-white text-white px-6 py-2 rounded-full hover:bg-white hover:text-gray-900 transition font-medium text-sm"
+          >
+            Designer Login
+          </Link>
+        )}
       </div>
     </nav>
   );
