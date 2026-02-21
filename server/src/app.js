@@ -2,6 +2,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
+const seedData = require('./utils/seeder');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 
 const authRoutes = require('./routes/authRoutes');
@@ -29,10 +30,11 @@ app.get('/', (req, res) => {
 app.use(notFound);
 app.use(errorHandler);
 
-connectDB().then(() => {
-app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-});
+connectDB().then(async () => {
+  await seedData();
+  app.listen(PORT, () => {
+    console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+  });
 });
 
 module.exports = app;

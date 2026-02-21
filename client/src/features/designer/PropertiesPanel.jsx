@@ -4,7 +4,7 @@ import Input from '../../components/UI/Input';
 import Button from '../../components/UI/Button';
 
 const PropertiesPanel = () => {
-  const { room, selectedFurnitureId, updateFurniture, removeFurniture } = useDesign();
+  const { room, selectedFurnitureId, setSelectedFurnitureId, updateFurniture, removeFurniture, updateRoomSpecs } = useDesign();
   const [selectedItem, setSelectedItem] = useState(null);
 
   useEffect(() => {
@@ -31,22 +31,93 @@ const PropertiesPanel = () => {
       updates = { [field]: value };
     }
 
-    // Optimistic update locally?
-    // Ideally we call updateFurniture which calls API and then updates context
     updateFurniture(room._id, selectedItem._id, updates);
   };
 
+  const handleRoomChange = (field, value, subfield = null) => {
+    if (!room) return;
+
+    let updates = {};
+    if (field === 'dimensions') {
+         updates = {
+             dimensions: {
+                 ...room.dimensions,
+                 [subfield]: parseFloat(value)
+             }
+         };
+    } else if (field === 'colorScheme') {
+         updates = {
+             colorScheme: {
+                 ...room.colorScheme,
+                 [subfield]: value
+             }
+         };
+    }
+    updateRoomSpecs(room._id, updates);
+  };
+
   if (!selectedItem) {
+    if (!room) return <div className="w-64 bg-gray-50 border-l p-4">Loading...</div>;
+
     return (
-      <div className="w-64 bg-gray-50 border-l p-4">
-        <p className="text-gray-500">Select an item to edit properties</p>
+      <div className="w-64 bg-gray-50 border-l p-4 overflow-y-auto h-full">
+        <h3 className="font-bold mb-4">Room Properties</h3>
+
+        <div className="mb-4">
+            <h4 className="text-sm font-medium mb-2">Dimensions (m)</h4>
+            <div className="grid grid-cols-1 gap-2">
+                <Input
+                    id="room-length"
+                    label="Length (x)"
+                    type="number"
+                    value={room.dimensions.length}
+                    onChange={(e) => handleRoomChange('dimensions', e.target.value, 'length')}
+                />
+                 <Input
+                    id="room-width"
+                    label="Width (z)"
+                    type="number"
+                    value={room.dimensions.width}
+                    onChange={(e) => handleRoomChange('dimensions', e.target.value, 'width')}
+                />
+                 <Input
+                    id="room-height"
+                    label="Height (y)"
+                    type="number"
+                    value={room.dimensions.height}
+                    onChange={(e) => handleRoomChange('dimensions', e.target.value, 'height')}
+                />
+            </div>
+        </div>
+
+        <div className="mb-4">
+            <h4 className="text-sm font-medium mb-2">Colors</h4>
+            <Input
+                id="room-wall-color"
+                label="Wall Color"
+                type="color"
+                value={room.colorScheme?.wallColor || '#e0e0e0'}
+                onChange={(e) => handleRoomChange('colorScheme', e.target.value, 'wallColor')}
+            />
+             <Input
+                id="room-floor-color"
+                label="Floor Color"
+                type="color"
+                value={room.colorScheme?.floorColor || '#8d6e63'}
+                onChange={(e) => handleRoomChange('colorScheme', e.target.value, 'floorColor')}
+            />
+        </div>
+
+        <div className="mt-8 pt-4 border-t text-sm text-gray-500">
+            <p>Select a furniture item to edit its properties.</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="w-64 bg-gray-50 border-l p-4 overflow-y-auto h-full">
-      <h3 className="font-bold mb-4">Properties</h3>
+      <h3 className="font-bold mb-4">Item Properties</h3>
 
       <div className="mb-4">
         <h4 className="text-sm font-medium mb-2">Position</h4>
@@ -111,6 +182,12 @@ const PropertiesPanel = () => {
       <Button variant="danger" onClick={() => removeFurniture(room._id, selectedItem._id)}>
         Remove Item
       </Button>
+
+      <div className="mt-4 pt-4 border-t text-sm text-center">
+          <Button variant="secondary" onClick={() => setSelectedFurnitureId(null)}>
+              Deselect Item
+          </Button>
+      </div>
     </div>
   );
 };

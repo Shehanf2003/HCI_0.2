@@ -1,0 +1,14 @@
+
+> server@1.0.0 start
+> node src/app.js
+
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+MONGO_URI not found, starting in-memory MongoDB...
+In-memory MongoDB started at mongodb://127.0.0.1:38379/
+MongoDB Connected: 127.0.0.1
+Seeding Users...
+User Seeded
+Seeding Furniture...
+Furniture Seeded
+Server running in undefined mode on port 5001
+Terminated

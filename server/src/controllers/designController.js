@@ -29,7 +29,8 @@ const addFurnitureItem = async (req, res) => {
     // if (!fitsInRoom(position, calculateScaledDimensions(furniture.dimensions, scale), room.dimensions)) ...
 
     room.furnitureItems.push(newItem);
-    const updatedRoom = await room.save();
+    await room.save();
+    const updatedRoom = await Room.findById(room._id).populate('furnitureItems.furnitureId');
     res.json(updatedRoom);
   } else {
     res.status(404);
@@ -60,7 +61,8 @@ const updateFurnitureItem = async (req, res) => {
           item.color = color || item.color;
 
           room.furnitureItems[itemIndex] = item;
-          const updatedRoom = await room.save();
+          await room.save();
+          const updatedRoom = await Room.findById(room._id).populate('furnitureItems.furnitureId');
           res.json(updatedRoom);
       } else {
           res.status(404);
@@ -88,7 +90,8 @@ const removeFurnitureItem = async (req, res) => {
       (item) => item._id.toString() !== req.params.itemId
     );
 
-    const updatedRoom = await room.save();
+    await room.save();
+    const updatedRoom = await Room.findById(room._id).populate('furnitureItems.furnitureId');
     res.json(updatedRoom);
   } else {
     res.status(404);

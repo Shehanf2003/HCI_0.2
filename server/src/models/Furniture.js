@@ -25,6 +25,9 @@ const furnitureSchema = mongoose.Schema(
     },
     imageUrl: {
       type: String, // Optional, for UI preview
+    },
+    modelUrl: {
+      type: String, // Path to .glb/.gltf file
     }
   },
   {

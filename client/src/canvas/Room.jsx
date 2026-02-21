@@ -7,8 +7,8 @@ const Room = () => {
   if (!room) return null;
 
   const { dimensions, colorScheme } = room;
-  const { length, width, height } = dimensions; // length=x, width=z, height=y
-  const { floorColor, wallColor } = colorScheme;
+  const { length, width, height } = dimensions || { length: 10, width: 10, height: 3 }; // length=x, width=z, height=y
+  const { floorColor, wallColor } = colorScheme || { floorColor: '#8d6e63', wallColor: '#e0e0e0' };
 
   const halfLength = length / 2;
   const halfWidth = width / 2;
@@ -17,13 +17,13 @@ const Room = () => {
   return (
     <group>
       {/* Floor */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
         <planeGeometry args={[length, width]} />
         <meshStandardMaterial color={floorColor} />
       </mesh>
 
       {/* Back Wall (negative Z) */}
-      <mesh position={[0, halfHeight, -halfWidth]}>
+      <mesh position={[0, halfHeight, -halfWidth]} receiveShadow>
         <planeGeometry args={[length, height]} />
         <meshStandardMaterial color={wallColor} side={2} />
       </mesh>
@@ -37,13 +37,13 @@ const Room = () => {
       */}
 
       {/* Left Wall (negative X) */}
-      <mesh position={[-halfLength, halfHeight, 0]} rotation={[0, Math.PI / 2, 0]}>
+      <mesh position={[-halfLength, halfHeight, 0]} rotation={[0, Math.PI / 2, 0]} receiveShadow>
         <planeGeometry args={[width, height]} />
         <meshStandardMaterial color={wallColor} side={2} />
       </mesh>
 
       {/* Right Wall (positive X) */}
-      <mesh position={[halfLength, halfHeight, 0]} rotation={[0, -Math.PI / 2, 0]}>
+      <mesh position={[halfLength, halfHeight, 0]} rotation={[0, -Math.PI / 2, 0]} receiveShadow>
         <planeGeometry args={[width, height]} />
         <meshStandardMaterial color={wallColor} side={2} />
       </mesh>
