@@ -26,7 +26,7 @@ const seedData = async () => {
           dimensions: { width: 0.5, height: 1, depth: 0.5 },
           defaultColor: '#FF5733',
           price: 150,
-          modelUrl: '/assets/models/chair.glb', // Placeholder
+          modelUrl: '/assets/chair.glb', // Placeholder
         },
         {
           name: 'Dining Table',
@@ -34,7 +34,7 @@ const seedData = async () => {
           dimensions: { width: 1.5, height: 0.8, depth: 1 },
           defaultColor: '#8B4513',
           price: 450,
-          modelUrl: '/assets/models/table.glb', // Placeholder
+          modelUrl: '/assets/table.glb', // Placeholder
         },
         {
           name: 'Comfort Sofa',
@@ -42,7 +42,7 @@ const seedData = async () => {
           dimensions: { width: 2, height: 1, depth: 1 },
           defaultColor: '#3357FF',
           price: 800,
-          modelUrl: '/assets/models/sofa.glb', // Placeholder
+          modelUrl: '/assets/sofa.glb', // Placeholder
         },
       ];
       await Furniture.insertMany(furnitureItems);
