@@ -1,4 +1,5 @@
 const Room = require('../models/Room');
+const Furniture = require('../models/Furniture');
 const { calculateScaledDimensions, fitsInRoom } = require('../services/furnitureService');
 const { calculateTotalDesignCost } = require('../services/pricingService');
 
@@ -16,11 +17,44 @@ const addFurnitureItem = async (req, res) => {
       throw new Error('Not authorized');
     }
 
+    let finalScale = scale;
+
+    // Auto-scaling logic if scale is not explicitly customized (assuming 1,1,1 is default)
+    // Or we force auto-scale on first add
+    if (!scale || (scale.x === 1 && scale.y === 1 && scale.z === 1)) {
+       const furniture = await Furniture.findById(furnitureId);
+       if (furniture && furniture.dimensions && room.dimensions) {
+          // General rule: furniture width should be approx 20% of room width (z-axis in Room model seems to correspond to width)
+          // Room dimensions: length (x), width (z), height (y)
+          // Furniture dimensions: width, height, depth
+
+          const targetRatio = 0.20; // 20%
+          // Use room's smallest horizontal dimension to be safe
+          const roomMinDim = Math.min(room.dimensions.length, room.dimensions.width);
+
+          // Calculate scale factor based on width
+          // Assuming furniture 'width' aligns with room horizontal plane
+          let scaleFactor = (roomMinDim * targetRatio) / furniture.dimensions.width;
+
+          // Ensure scale factor is reasonable (not too small, not too huge)
+          // If the object is already big enough (e.g. scaleFactor < 1), we might keep it as is, or enforce consistency.
+          // The user said "object is smaller than room", implying we need to scale UP or fix units.
+          // If the model is in different units (e.g. mm vs m), scaleFactor could be huge or tiny.
+
+          // Let's apply the calculated scale uniformly
+          finalScale = {
+              x: scaleFactor,
+              y: scaleFactor,
+              z: scaleFactor
+          };
+       }
+    }
+
     const newItem = {
       furnitureId,
       position,
       rotation,
-      scale,
+      scale: finalScale,
       color
     };
 
