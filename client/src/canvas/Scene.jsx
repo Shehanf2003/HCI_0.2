@@ -5,6 +5,7 @@ import { useDesign } from '../context/DesignContext';
 import Room from './Room';
 import FurnitureItem from './FurnitureItem';
 import Lights from './Lights';
+import DragDropController from './DragDropController';
 
 const Scene = () => {
   const { room, viewMode, selectedFurnitureId, setSelectedFurnitureId } = useDesign();
@@ -31,6 +32,7 @@ const Scene = () => {
             />
 
             <Lights />
+            <DragDropController />
 
             <group>
                 <Room />
