@@ -57,10 +57,10 @@ const PropertiesPanel = () => {
   };
 
   if (!selectedItem) {
-    if (!room) return <div className="w-64 bg-gray-50 border-l p-4 dark:bg-gray-800 dark:border-gray-700 dark:text-white transition-colors duration-300">Loading...</div>;
+    if (!room) return <div className="w-full bg-gray-50 border-l p-4 dark:bg-gray-800 dark:border-gray-700 dark:text-white transition-colors duration-300">Loading...</div>;
 
     return (
-      <div className="w-64 bg-gray-50 border-l p-4 overflow-y-auto h-full dark:bg-gray-800 dark:border-gray-700 dark:text-white transition-colors duration-300">
+      <div className="w-full bg-gray-50 border-l p-4 overflow-y-auto h-full dark:bg-gray-800 dark:border-gray-700 dark:text-white transition-colors duration-300">
         <h3 className="font-bold mb-4">Room Properties</h3>
 
         <div className="mb-4">
@@ -116,7 +116,7 @@ const PropertiesPanel = () => {
   }
 
   return (
-    <div className="w-64 bg-gray-50 border-l p-4 overflow-y-auto h-full dark:bg-gray-800 dark:border-gray-700 dark:text-white transition-colors duration-300">
+    <div className="w-full bg-gray-50 border-l p-4 overflow-y-auto h-full dark:bg-gray-800 dark:border-gray-700 dark:text-white transition-colors duration-300">
       <h3 className="font-bold mb-4">Item Properties</h3>
 
       <div className="mb-4">
