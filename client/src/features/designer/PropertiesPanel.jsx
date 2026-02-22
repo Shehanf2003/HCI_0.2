@@ -57,10 +57,10 @@ const PropertiesPanel = () => {
   };
 
   if (!selectedItem) {
-    if (!room) return <div className="w-64 bg-gray-50 border-l p-4">Loading...</div>;
+    if (!room) return <div className="w-64 bg-gray-50 border-l p-4 dark:bg-gray-800 dark:border-gray-700 dark:text-white transition-colors duration-300">Loading...</div>;
 
     return (
-      <div className="w-64 bg-gray-50 border-l p-4 overflow-y-auto h-full">
+      <div className="w-64 bg-gray-50 border-l p-4 overflow-y-auto h-full dark:bg-gray-800 dark:border-gray-700 dark:text-white transition-colors duration-300">
         <h3 className="font-bold mb-4">Room Properties</h3>
 
         <div className="mb-4">
@@ -108,7 +108,7 @@ const PropertiesPanel = () => {
             />
         </div>
 
-        <div className="mt-8 pt-4 border-t text-sm text-gray-500">
+        <div className="mt-8 pt-4 border-t text-sm text-gray-500 dark:text-gray-400 dark:border-gray-700">
             <p>Select a furniture item to edit its properties.</p>
         </div>
       </div>
@@ -116,7 +116,7 @@ const PropertiesPanel = () => {
   }
 
   return (
-    <div className="w-64 bg-gray-50 border-l p-4 overflow-y-auto h-full">
+    <div className="w-64 bg-gray-50 border-l p-4 overflow-y-auto h-full dark:bg-gray-800 dark:border-gray-700 dark:text-white transition-colors duration-300">
       <h3 className="font-bold mb-4">Item Properties</h3>
 
       <div className="mb-4">
@@ -183,7 +183,7 @@ const PropertiesPanel = () => {
         Remove Item
       </Button>
 
-      <div className="mt-4 pt-4 border-t text-sm text-center">
+      <div className="mt-4 pt-4 border-t text-sm text-center dark:border-gray-700">
           <Button variant="secondary" onClick={() => setSelectedFurnitureId(null)}>
               Deselect Item
           </Button>

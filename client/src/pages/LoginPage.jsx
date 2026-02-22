@@ -4,7 +4,7 @@ import Navbar from '../components/Layout/Navbar';
 
 const LoginPage = () => {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col dark:bg-gray-900 transition-colors duration-300">
       <Navbar />
       <div className="flex-grow flex items-center justify-center p-4">
         <LoginForm />

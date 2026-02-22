@@ -14,7 +14,7 @@ const Scene = () => {
   };
 
   return (
-    <div className="h-full w-full bg-gray-200">
+    <div className="h-full w-full bg-gray-200 dark:bg-gray-900 transition-colors duration-300">
       <Canvas shadows onPointerMissed={handleMissed}>
         <Suspense fallback={null}>
             {viewMode === '3D' ? (

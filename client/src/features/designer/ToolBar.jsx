@@ -10,7 +10,7 @@ const ToolBar = () => {
 
   return (
     <>
-      <div className="bg-gray-100 p-4 border-b flex justify-between items-center">
+      <div className="bg-gray-100 p-4 border-b flex justify-between items-center dark:bg-gray-800 dark:border-gray-700 transition-colors duration-300">
         <div className="space-x-2">
           <Button onClick={() => setIsCatalogOpen(true)}>Add Furniture</Button>
         </div>

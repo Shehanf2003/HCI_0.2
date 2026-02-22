@@ -23,8 +23,8 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="max-w-md w-full mx-auto bg-white p-8 border border-gray-300 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+    <div className="max-w-md w-full mx-auto bg-white p-8 border border-gray-300 rounded-lg shadow-md dark:bg-gray-800 dark:border-gray-700 transition-colors duration-300">
+      <h2 className="text-2xl font-bold mb-6 text-center dark:text-white">Login</h2>
       {error && <p className="text-red-500 mb-4">{error}</p>}
       <form onSubmit={handleSubmit}>
         <div className="mb-4">

@@ -90,15 +90,15 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-20">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-20 transition-colors duration-300">
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">Your Designs</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Your Designs</h1>
             <div className="flex space-x-4">
               <button
                 onClick={() => setIsConfigModalOpen(true)}
-                className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition"
+                className="bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 px-4 py-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition"
               >
                 Update Home Background
               </button>
@@ -107,24 +107,24 @@ const Dashboard = () => {
           </div>
 
           {loading ? (
-            <p>Loading...</p>
+            <p className="dark:text-white">Loading...</p>
           ) : error ? (
             <p className="text-red-500">{error}</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {rooms.map((room) => (
-                <div key={room._id} className="bg-white overflow-hidden shadow rounded-lg">
+                <div key={room._id} className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg transition-colors duration-300">
                   <div className="px-4 py-5 sm:p-6">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900 truncate">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white truncate">
                       {room.name}
                     </h3>
-                    <div className="mt-2 max-w-xl text-sm text-gray-500">
+                    <div className="mt-2 max-w-xl text-sm text-gray-500 dark:text-gray-400">
                       <p>Dimensions: {room.dimensions.length}x{room.dimensions.width}x{room.dimensions.height}</p>
                     </div>
                     <div className="mt-4">
                       <Link
                         to={`/design-studio/${room._id}`}
-                        className="text-blue-600 hover:text-blue-900 font-medium"
+                        className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors"
                       >
                         Open Design &rarr;
                       </Link>
@@ -133,7 +133,7 @@ const Dashboard = () => {
                 </div>
               ))}
               {rooms.length === 0 && (
-                <p className="text-gray-500 col-span-full text-center py-10">
+                <p className="text-gray-500 dark:text-gray-400 col-span-full text-center py-10">
                   No designs yet. Create one to get started!
                 </p>
               )}
