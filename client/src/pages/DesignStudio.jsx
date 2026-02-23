@@ -28,7 +28,7 @@ const DesignStudioContent = () => {
 
         {/* Left Sidebar: Furniture Catalog */}
         <div
-          className={`transition-all duration-300 ease-in-out ${isCatalogOpen ? 'w-72' : 'w-0'} bg-white dark:bg-gray-800 border-r dark:border-gray-700 flex flex-col z-20`}
+          className={`transition-all duration-300 ease-in-out ${isCatalogOpen ? 'w-72' : 'w-0'} bg-white dark:bg-gray-800 border-r dark:border-gray-700 flex flex-col z-20 overflow-hidden`}
         >
           <div className="w-72 h-full overflow-hidden">
              <FurnitureCatalog />
@@ -81,7 +81,7 @@ const DesignStudioContent = () => {
 
         {/* Right Sidebar: Properties Panel */}
         <div
-          className={`transition-all duration-300 ease-in-out ${isPropertiesOpen ? 'w-72' : 'w-0'} bg-white dark:bg-gray-800 border-l dark:border-gray-700 flex flex-col z-20`}
+          className={`transition-all duration-300 ease-in-out ${isPropertiesOpen ? 'w-72' : 'w-0'} bg-white dark:bg-gray-800 border-l dark:border-gray-700 flex flex-col z-20 overflow-hidden`}
         >
            <div className="w-72 h-full overflow-hidden">
               <PropertiesPanel />

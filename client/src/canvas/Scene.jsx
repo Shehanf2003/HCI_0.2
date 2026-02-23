@@ -19,7 +19,7 @@ const Scene = () => {
       <Canvas shadows onPointerMissed={handleMissed}>
         <Suspense fallback={null}>
             {viewMode === '3D' ? (
-                <PerspectiveCamera makeDefault position={[10, 10, 10]} fov={50} />
+                <PerspectiveCamera makeDefault position={[0, 1.6, 4]} fov={50} />
             ) : (
                 <OrthographicCamera makeDefault position={[0, 20, 0]} zoom={20} />
             )}
@@ -29,6 +29,7 @@ const Scene = () => {
                 enableZoom={true}
                 enablePan={true}
                 maxPolarAngle={viewMode === '3D' ? Math.PI / 2 : 0} // Prevent going below ground
+                target={[0, 1, 0]}
             />
 
             <Lights />

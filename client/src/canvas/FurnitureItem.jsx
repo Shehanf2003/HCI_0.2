@@ -130,7 +130,7 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
 
   if (isSelected) {
       return (
-          <TransformControls mode="translate" onMouseUp={handleTransformEnd}>
+          <TransformControls mode="translate" onMouseUp={handleTransformEnd} makeDefault>
               {MeshComponent}
           </TransformControls>
       );

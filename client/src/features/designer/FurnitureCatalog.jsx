@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useDesign } from '../../context/DesignContext';
 import Button from '../../components/UI/Button';
 import { Canvas } from '@react-three/fiber';
-import { Center, Environment, useGLTF } from '@react-three/drei';
+import { Center, Environment, useGLTF, Stage } from '@react-three/drei';
 
 // Internal Model Thumbnail Component
 // Using React.memo to prevent re-renders unless modelUrl changes
@@ -16,19 +16,15 @@ const ModelThumbnail = React.memo(({ modelUrl }) => {
     <div className="w-16 h-16 bg-white dark:bg-gray-600 rounded flex items-center justify-center overflow-hidden flex-shrink-0 border dark:border-gray-500 relative">
         <Canvas
             frameloop="demand" // Only render when necessary
-            camera={{ position: [2, 2, 2], fov: 50 }}
             gl={{ preserveDrawingBuffer: true, alpha: true }}
             shadows={false}
             className="w-full h-full"
             style={{ pointerEvents: 'none' }} // Disable interactions for performance
         >
-            <ambientLight intensity={0.7} />
-            <directionalLight position={[10, 10, 5]} intensity={1} />
             <Suspense fallback={null}>
-                <Center>
-                <primitive object={clonedScene} />
-                </Center>
-                <Environment preset="city" />
+                <Stage environment="city" intensity={0.5} contactShadow={false} shadow={false} adjustCamera={true}>
+                    <primitive object={clonedScene} />
+                </Stage>
             </Suspense>
         </Canvas>
     </div>
