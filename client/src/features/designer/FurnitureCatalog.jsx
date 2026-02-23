@@ -1,7 +1,39 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense, useRef, useMemo } from 'react';
 import axios from 'axios';
-import Button from '../../components/UI/Button';
 import { useDesign } from '../../context/DesignContext';
+import Button from '../../components/UI/Button';
+import { Canvas } from '@react-three/fiber';
+import { Center, Environment, useGLTF } from '@react-three/drei';
+
+// Internal Model Thumbnail Component
+// Using React.memo to prevent re-renders unless modelUrl changes
+const ModelThumbnail = React.memo(({ modelUrl }) => {
+  const { scene } = useGLTF(modelUrl);
+  // Clone to avoid shared state issues
+  const clonedScene = useMemo(() => scene.clone(), [scene]);
+
+  return (
+    <div className="w-16 h-16 bg-white dark:bg-gray-600 rounded flex items-center justify-center overflow-hidden flex-shrink-0 border dark:border-gray-500 relative">
+        <Canvas
+            frameloop="demand" // Only render when necessary
+            camera={{ position: [2, 2, 2], fov: 50 }}
+            gl={{ preserveDrawingBuffer: true, alpha: true }}
+            shadows={false}
+            className="w-full h-full"
+            style={{ pointerEvents: 'none' }} // Disable interactions for performance
+        >
+            <ambientLight intensity={0.7} />
+            <directionalLight position={[10, 10, 5]} intensity={1} />
+            <Suspense fallback={null}>
+                <Center>
+                <primitive object={clonedScene} />
+                </Center>
+                <Environment preset="city" />
+            </Suspense>
+        </Canvas>
+    </div>
+  );
+});
 
 const FurnitureCatalog = () => {
   const [furnitureItems, setFurnitureItems] = useState([]);
@@ -41,10 +73,6 @@ const FurnitureCatalog = () => {
   const handleDragStart = (e, item) => {
     e.dataTransfer.setData("furnitureId", item._id);
     e.dataTransfer.effectAllowed = "copy";
-    // Optional: Set drag image
-    // const img = new Image();
-    // img.src = item.imageUrl || 'placeholder.png';
-    // e.dataTransfer.setDragImage(img, 0, 0);
   };
 
   if (loading) return <div className="p-4 text-gray-500 dark:text-gray-400">Loading catalog...</div>;
@@ -66,16 +94,20 @@ const FurnitureCatalog = () => {
               onDragStart={(e) => handleDragStart(e, item)}
               className="border dark:border-gray-700 rounded p-3 bg-gray-50 dark:bg-gray-700 hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing flex items-center space-x-3"
             >
-              {/* Image Preview */}
-              <div className="w-16 h-16 bg-white dark:bg-gray-600 rounded flex items-center justify-center overflow-hidden flex-shrink-0 border dark:border-gray-500">
+              {/* Image Preview or 3D Thumbnail */}
                 {item.imageUrl ? (
-                  <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                  <div className="w-16 h-16 bg-white dark:bg-gray-600 rounded flex items-center justify-center overflow-hidden flex-shrink-0 border dark:border-gray-500 relative">
+                     <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                  </div>
+                ) : item.modelUrl ? (
+                   <Suspense fallback={<div className="w-16 h-16 bg-gray-200 animate-pulse rounded"></div>}>
+                      <ModelThumbnail modelUrl={item.modelUrl} />
+                   </Suspense>
                 ) : (
-                   <div className="text-center">
+                   <div className="w-16 h-16 bg-white dark:bg-gray-600 rounded flex items-center justify-center overflow-hidden flex-shrink-0 border dark:border-gray-500 relative">
                       <span className="text-2xl">🪑</span>
                    </div>
                 )}
-              </div>
 
               {/* Details */}
               <div className="flex-1 min-w-0">
