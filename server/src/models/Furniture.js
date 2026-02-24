@@ -15,6 +15,10 @@ const furnitureSchema = mongoose.Schema(
       height: { type: Number, required: true },
       depth: { type: Number, required: true },
     },
+    description: {
+      type: String,
+      default: '',
+    },
     defaultColor: {
       type: String,
       default: '#ffffff',
