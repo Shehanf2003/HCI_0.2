@@ -5,10 +5,14 @@ import ToolBar from '../features/designer/ToolBar';
 import PropertiesPanel from '../features/designer/PropertiesPanel';
 import FurnitureCatalog from '../features/designer/FurnitureCatalog';
 import Scene from '../canvas/Scene';
+import UploadFurnitureModal from '../components/Admin/UploadFurnitureModal';
 
 const DesignStudioContent = () => {
   const { id } = useParams();
   const { loadDesign, loading, error, room } = useDesign();
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const userInfo = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+  const isAdmin = userInfo?.isAdmin;
   const [isCatalogOpen, setIsCatalogOpen] = useState(true);
   const [isPropertiesOpen, setIsPropertiesOpen] = useState(true);
 
@@ -28,10 +32,22 @@ const DesignStudioContent = () => {
 
         {/* Left Sidebar: Furniture Catalog */}
         <div
-          className={`transition-all duration-300 ease-in-out ${isCatalogOpen ? 'w-72' : 'w-0'} bg-white dark:bg-gray-800 border-r dark:border-gray-700 flex flex-col z-20 overflow-hidden`}
+          className={`transition-all duration-300 ease-in-out ${isCatalogOpen ? 'w-72' : 'w-0'} bg-white dark:bg-gray-800 border-r dark:border-gray-700 flex flex-col z-20 overflow-hidden relative`}
         >
-          <div className="w-72 h-full overflow-hidden">
-             <FurnitureCatalog />
+          <div className="w-72 h-full overflow-hidden flex flex-col">
+             <div className="flex-1 overflow-y-auto">
+                 <FurnitureCatalog />
+             </div>
+             {isAdmin && (
+                <div className="p-2 border-t dark:border-gray-700 bg-white dark:bg-gray-800">
+                  <button
+                    onClick={() => setShowUploadModal(true)}
+                    className="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    Upload Furniture
+                  </button>
+                </div>
+             )}
           </div>
         </div>
 
@@ -89,6 +105,19 @@ const DesignStudioContent = () => {
         </div>
 
       </div>
+
+      {showUploadModal && (
+        <UploadFurnitureModal
+            onClose={() => setShowUploadModal(false)}
+            onUploadSuccess={() => {
+                // Optionally reload catalog or show success message
+                // The current catalog fetches on mount, so we might need a way to refresh it
+                // For now, simpler is acceptable.
+                alert('Furniture uploaded successfully!');
+                window.location.reload(); // Simple refresh to show new item
+            }}
+        />
+      )}
     </div>
   );
 };

@@ -8,6 +8,8 @@ const { notFound, errorHandler } = require('./middleware/errorHandler');
 const authRoutes = require('./routes/authRoutes');
 const apiRoutes = require('./routes/apiRoutes');
 const configRoutes = require('./routes/configRoutes');
+const furnitureRoutes = require('./routes/furnitureRoutes');
+const path = require('path');
 
 dotenv.config();
 
@@ -21,7 +23,10 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/config', configRoutes);
+app.use('/api/furniture', furnitureRoutes);
 app.use('/api', apiRoutes);
+
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.get('/', (req, res) => {
   res.send('API is running...');
