@@ -4,6 +4,7 @@ import { useDesign } from '../../context/DesignContext';
 import Button from '../../components/UI/Button';
 import { Canvas } from '@react-three/fiber';
 import { Center, Environment, useGLTF, Stage } from '@react-three/drei';
+import EditFurnitureModal from '../../components/Admin/EditFurnitureModal';
 
 // Internal Model Thumbnail Component
 // Using React.memo to prevent re-renders unless modelUrl changes
@@ -37,22 +38,39 @@ const FurnitureCatalog = () => {
   const [error, setError] = useState(null);
   const { addFurniture, room } = useDesign();
 
-  useEffect(() => {
-    const fetchFurniture = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const config = { headers: { Authorization: `Bearer ${token}` } };
-        const { data } = await axios.get('/api/furniture', config);
-        setFurnitureItems(data);
-        setLoading(false);
-      } catch (err) {
-        setError(err.response?.data?.message || err.message);
-        setLoading(false);
-      }
-    };
+  const [editingItem, setEditingItem] = useState(null);
+  const userInfo = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+  const isAdmin = userInfo?.isAdmin;
 
+  const fetchFurniture = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      const { data } = await axios.get('/api/furniture', config);
+      setFurnitureItems(data);
+      setLoading(false);
+    } catch (err) {
+      setError(err.response?.data?.message || err.message);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchFurniture();
   }, []);
+
+  const handleDeleteItem = async (itemId) => {
+    if (!window.confirm("Are you sure you want to delete this furniture item?")) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      await axios.delete(`/api/furniture/${itemId}`, config);
+      fetchFurniture(); // Refresh the list
+    } catch (err) {
+      alert(err.response?.data?.message || err.message);
+    }
+  };
 
   const handleAddItem = (item) => {
     if (!room) return;
@@ -109,14 +127,38 @@ const FurnitureCatalog = () => {
               <div className="flex-1 min-w-0">
                 <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">{item.name}</h4>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">${item.price}</p>
-                <Button
-                  size="sm"
-                  variant="primary"
-                  className="w-full text-xs py-1"
-                  onClick={() => handleAddItem(item)}
-                >
-                  Add
-                </Button>
+                <div className="flex space-x-2">
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    className="flex-1 text-xs py-1"
+                    onClick={() => handleAddItem(item)}
+                  >
+                    Add
+                  </Button>
+                  {isAdmin && (
+                    <>
+                      <button
+                        onClick={() => setEditingItem(item)}
+                        className="p-1 text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400"
+                        title="Edit Item"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteItem(item._id)}
+                        className="p-1 text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400"
+                        title="Delete Item"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           ))}
@@ -125,6 +167,16 @@ const FurnitureCatalog = () => {
           <p className="text-gray-500 dark:text-gray-400 text-center mt-8">No furniture available.</p>
         )}
       </div>
+
+      {editingItem && (
+        <EditFurnitureModal
+          furnitureItem={editingItem}
+          onClose={() => setEditingItem(null)}
+          onEditSuccess={() => {
+            fetchFurniture();
+          }}
+        />
+      )}
     </div>
   );
 };

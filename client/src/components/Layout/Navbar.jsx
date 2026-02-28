@@ -2,11 +2,20 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Sun, Moon } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import { toast } from 'react-hot-toast';
 
 const Navbar = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
   const { theme, toggleTheme } = useTheme();
+
+  const handlePortfolioClick = () => {
+    if (token) {
+      navigate('/dashboard');
+    } else {
+      toast.error('Please log in to view your portfolio');
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -33,8 +42,7 @@ const Navbar = () => {
       </div>
       <div className={`hidden md:flex space-x-8 font-medium text-sm tracking-wide`}>
         <Link to="/" className={`${linkHover} transition`}>Home</Link>
-        <span className={`cursor-pointer ${linkHover} transition`}>Portfolio</span>
-        <span className={`cursor-pointer ${linkHover} transition`}>3D Showroom</span>
+        <span onClick={handlePortfolioClick} className={`cursor-pointer ${linkHover} transition`}>Portfolio</span>
       </div>
       <div className="flex items-center space-x-4">
         <button

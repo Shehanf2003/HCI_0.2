@@ -35,6 +35,60 @@ const upload = multer({
 // @desc    Upload new furniture item
 // @route   POST /api/furniture/upload
 // @access  Private/Admin
+const updateFurniture = async (req, res) => {
+  try {
+    const { name, type, width, height, depth, price, description, color } = req.body;
+
+    const furniture = await Furniture.findById(req.params.id);
+
+    if (furniture) {
+      furniture.name = name || furniture.name;
+      furniture.type = type || furniture.type;
+
+      if (width && height && depth) {
+        furniture.dimensions = {
+          width: Number(width),
+          height: Number(height),
+          depth: Number(depth),
+        };
+      }
+
+      furniture.price = price ? Number(price) : furniture.price;
+      furniture.description = description || furniture.description;
+      furniture.defaultColor = color || furniture.defaultColor;
+
+      // If a new file is uploaded, update the modelUrl
+      if (req.file) {
+        furniture.modelUrl = `/uploads/${req.file.filename}`;
+      }
+
+      const updatedFurniture = await furniture.save();
+      res.json(updatedFurniture);
+    } else {
+      res.status(404).json({ message: 'Furniture not found' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error: ' + error.message });
+  }
+};
+
+const deleteFurniture = async (req, res) => {
+  try {
+    const furniture = await Furniture.findById(req.params.id);
+
+    if (furniture) {
+      await furniture.deleteOne();
+      res.json({ message: 'Furniture removed' });
+    } else {
+      res.status(404).json({ message: 'Furniture not found' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error: ' + error.message });
+  }
+};
+
 const uploadFurniture = async (req, res) => {
   try {
     const { name, type, width, height, depth, price, description, color } = req.body;
@@ -71,4 +125,6 @@ const uploadFurniture = async (req, res) => {
 module.exports = {
   upload,
   uploadFurniture,
+  updateFurniture,
+  deleteFurniture,
 };

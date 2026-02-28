@@ -1,0 +1,18 @@
+
+> client@0.0.0 dev
+> vite
+
+
+  VITE v5.4.21  ready in 324 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+3:38:04 PM [vite] http proxy error: /api/auth/login
+AggregateError [ECONNREFUSED]:
+    at internalConnectMultiple (node:net:1134:18)
+    at afterConnectMultiple (node:net:1715:7)
+3:44:29 PM [vite] http proxy error: /api/auth/login
+AggregateError [ECONNREFUSED]:
+    at internalConnectMultiple (node:net:1134:18)
+    at afterConnectMultiple (node:net:1715:7)
+3:49:26 PM [vite] hmr update /src/components/Admin/EditFurnitureModal.jsx, /src/index.css

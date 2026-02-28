@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import DesignStudio from './pages/DesignStudio';
 import Home from './pages/Home';
 import Navbar from './components/Layout/Navbar';
+import { Toaster } from 'react-hot-toast';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -18,6 +19,7 @@ const ProtectedRoute = ({ children }) => {
 function App() {
   return (
     <Router>
+      <Toaster position="top-right" />
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />

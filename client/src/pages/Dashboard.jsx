@@ -4,14 +4,21 @@ import { Link, useNavigate } from 'react-router-dom';
 import Button from '../components/UI/Button';
 import Modal from '../components/Feedback/Modal';
 import Input from '../components/UI/Input';
+import UploadFurnitureModal from '../components/Admin/UploadFurnitureModal';
 
 const Dashboard = () => {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [homeBgUrl, setHomeBgUrl] = useState('');
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [editingRoom, setEditingRoom] = useState(null);
+
+  const userInfo = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+  const isAdmin = userInfo?.isAdmin;
 
   // New room state
   const [newRoom, setNewRoom] = useState({
@@ -76,6 +83,53 @@ const Dashboard = () => {
     }
   };
 
+  const handleEditRoomSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('token');
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+
+      const payload = {
+        name: editingRoom.name,
+        dimensions: {
+          length: parseFloat(editingRoom.length),
+          width: parseFloat(editingRoom.width),
+          height: parseFloat(editingRoom.height),
+        }
+      };
+
+      await axios.put(`/api/rooms/${editingRoom._id}`, payload, config);
+      setIsEditModalOpen(false);
+      fetchRooms(); // Refresh the list
+    } catch (err) {
+      alert(err.response?.data?.message || err.message);
+    }
+  };
+
+  const handleDeleteRoom = async (roomId) => {
+    if (!window.confirm("Are you sure you want to delete this design?")) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+      await axios.delete(`/api/rooms/${roomId}`, config);
+      fetchRooms(); // Refresh the list
+    } catch (err) {
+      alert(err.response?.data?.message || err.message);
+    }
+  };
+
+  const openEditModal = (room) => {
+    setEditingRoom({
+      _id: room._id,
+      name: room.name,
+      length: room.dimensions.length,
+      width: room.dimensions.width,
+      height: room.dimensions.height,
+    });
+    setIsEditModalOpen(true);
+  };
+
   const handleUpdateConfig = async (e) => {
     e.preventDefault();
     try {
@@ -102,6 +156,9 @@ const Dashboard = () => {
               >
                 Update Home Background
               </button>
+              {isAdmin && (
+                <Button onClick={() => setShowUploadModal(true)}>Upload Furniture</Button>
+              )}
               <Button onClick={() => setIsModalOpen(true)}>Create New Design</Button>
             </div>
           </div>
@@ -121,13 +178,27 @@ const Dashboard = () => {
                     <div className="mt-2 max-w-xl text-sm text-gray-500 dark:text-gray-400">
                       <p>Dimensions: {room.dimensions.length}x{room.dimensions.width}x{room.dimensions.height}</p>
                     </div>
-                    <div className="mt-4">
+                    <div className="mt-4 flex items-center justify-between">
                       <Link
                         to={`/design-studio/${room._id}`}
                         className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors"
                       >
                         Open Design &rarr;
                       </Link>
+                      <div className="flex space-x-3">
+                        <button
+                          onClick={() => openEditModal(room)}
+                          className="text-sm text-gray-600 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400 font-medium"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteRoom(room._id)}
+                          className="text-sm text-gray-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 font-medium"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -186,6 +257,52 @@ const Dashboard = () => {
         </form>
       </Modal>
 
+      <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} title="Edit Design">
+        {editingRoom && (
+          <form onSubmit={handleEditRoomSubmit}>
+            <Input
+              label="Design Name"
+              id="editRoomName"
+              value={editingRoom.name}
+              onChange={(e) => setEditingRoom({ ...editingRoom, name: e.target.value })}
+              required
+            />
+            <div className="grid grid-cols-3 gap-4">
+              <Input
+                label="Length (m)"
+                id="editLength"
+                type="number"
+                value={editingRoom.length}
+                onChange={(e) => setEditingRoom({ ...editingRoom, length: e.target.value })}
+                required
+                min="1"
+              />
+              <Input
+                label="Width (m)"
+                id="editWidth"
+                type="number"
+                value={editingRoom.width}
+                onChange={(e) => setEditingRoom({ ...editingRoom, width: e.target.value })}
+                required
+                min="1"
+              />
+              <Input
+                label="Height (m)"
+                id="editHeight"
+                type="number"
+                value={editingRoom.height}
+                onChange={(e) => setEditingRoom({ ...editingRoom, height: e.target.value })}
+                required
+                min="1"
+              />
+            </div>
+            <div className="mt-4 flex justify-end">
+              <Button type="submit">Save Changes</Button>
+            </div>
+          </form>
+        )}
+      </Modal>
+
       <Modal isOpen={isConfigModalOpen} onClose={() => setIsConfigModalOpen(false)} title="Update Home Background">
         <form onSubmit={handleUpdateConfig}>
           <Input
@@ -201,6 +318,15 @@ const Dashboard = () => {
           </div>
         </form>
       </Modal>
+
+      {showUploadModal && (
+        <UploadFurnitureModal
+            onClose={() => setShowUploadModal(false)}
+            onUploadSuccess={() => {
+                alert('Furniture uploaded successfully!');
+            }}
+        />
+      )}
     </div>
   );
 };
