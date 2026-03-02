@@ -3,13 +3,28 @@ import { useDesign } from '../../context/DesignContext';
 import Button from '../../components/UI/Button';
 
 const ToolBar = () => {
-  const { viewMode, setViewMode } = useDesign();
+  const { viewMode, setViewMode, transformMode, setTransformMode, selectedFurnitureId } = useDesign();
 
   return (
     <div className="bg-gray-100 p-4 border-b flex justify-between items-center dark:bg-gray-800 dark:border-gray-700 transition-colors duration-300">
-      <div className="space-x-2">
-        {/* Placeholder for future tools */}
+      <div className="space-x-4 flex items-center">
         <span className="font-semibold text-gray-700 dark:text-gray-200">Design Workspace</span>
+        {selectedFurnitureId && (
+          <div className="flex space-x-2 ml-4">
+            <Button
+              variant={transformMode === 'translate' ? 'primary' : 'secondary'}
+              onClick={() => setTransformMode('translate')}
+            >
+              Move
+            </Button>
+            <Button
+              variant={transformMode === 'rotate' ? 'primary' : 'secondary'}
+              onClick={() => setTransformMode('rotate')}
+            >
+              Rotate
+            </Button>
+          </div>
+        )}
       </div>
       <div>
         <Button

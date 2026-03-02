@@ -79,11 +79,31 @@ const GLTFModel = ({ url, color, targetDims }) => {
 
 const FurnitureItem = ({ item, isSelected, onSelect }) => {
   const mesh = useRef();
-  const { updateFurniture, room } = useDesign();
+  const transform = useRef();
+  const { updateFurniture, room, transformMode } = useDesign();
 
   // item.furnitureId is populated object
   const dims = item.furnitureId?.dimensions || { width: 1, height: 1, depth: 1 };
   const modelUrl = item.furnitureId?.modelUrl;
+
+  useEffect(() => {
+    if (transform.current && mesh.current) {
+      transform.current.attach(mesh.current);
+    }
+    return () => {
+      if (transform.current) {
+        transform.current.detach();
+      }
+    };
+  }, [isSelected]);
+
+  const handleTransformChange = () => {
+    if (mesh.current) {
+        const { position, rotation, scale } = mesh.current;
+        // Optimization: Debounce or only update locally if needed, but since we want the visual to match
+        // the TransformControls handles it. We just need to update context onMouseUp to save.
+    }
+  };
 
   const handleTransformEnd = () => {
     if (mesh.current) {
@@ -128,15 +148,20 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
     </group>
   );
 
-  if (isSelected) {
-      return (
-          <TransformControls mode="translate" onMouseUp={handleTransformEnd} makeDefault>
-              {MeshComponent}
-          </TransformControls>
-      );
-  }
-
-  return MeshComponent;
+  return (
+    <>
+      {MeshComponent}
+      {isSelected && (
+        <TransformControls
+          ref={transform}
+          mode={transformMode || 'translate'}
+          onMouseUp={handleTransformEnd}
+          onChange={handleTransformChange}
+          makeDefault
+        />
+      )}
+    </>
+  );
 };
 
 export default FurnitureItem;
