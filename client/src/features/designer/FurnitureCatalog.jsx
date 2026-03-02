@@ -6,6 +6,25 @@ import { Canvas } from '@react-three/fiber';
 import { Center, Environment, useGLTF, Stage } from '@react-three/drei';
 import EditFurnitureModal from '../../components/Admin/EditFurnitureModal';
 
+
+class ModelErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
+
 // Internal Model Thumbnail Component
 // Using React.memo to prevent re-renders unless modelUrl changes
 const ModelThumbnail = React.memo(({ modelUrl }) => {
@@ -115,7 +134,11 @@ const FurnitureCatalog = () => {
                   </div>
                 ) : item.modelUrl ? (
                    <Suspense fallback={<div className="w-16 h-16 bg-gray-200 animate-pulse rounded"></div>}>
-                      <ModelThumbnail modelUrl={item.modelUrl} />
+
+                      <ModelErrorBoundary fallback={<div className="w-16 h-16 bg-red-100 dark:bg-red-900 rounded flex items-center justify-center text-xs text-red-500 text-center p-1">File Not Found</div>}>
+                        <ModelThumbnail modelUrl={item.modelUrl} />
+                      </ModelErrorBoundary>
+
                    </Suspense>
                 ) : (
                    <div className="w-16 h-16 bg-white dark:bg-gray-600 rounded flex items-center justify-center overflow-hidden flex-shrink-0 border dark:border-gray-500 relative">
