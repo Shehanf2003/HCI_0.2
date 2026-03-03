@@ -21,7 +21,7 @@ class ModelErrorBoundary extends React.Component {
   }
 }
 
-const GLTFModel = ({ url, color, targetDims }) => {
+const GLTFModel = ({ url, color, realWorldWidthMeters }) => {
   const { scene } = useGLTF(url);
   const clonedScene = useMemo(() => scene.clone(), [scene]);
 
@@ -37,7 +37,7 @@ const GLTFModel = ({ url, color, targetDims }) => {
   }, [clonedScene, color]);
 
   useLayoutEffect(() => {
-    if (!clonedScene || !targetDims) return;
+    if (!clonedScene || !realWorldWidthMeters) return;
 
     // Reset transforms to calculate base bounding box
     clonedScene.scale.set(1, 1, 1);
@@ -52,38 +52,29 @@ const GLTFModel = ({ url, color, targetDims }) => {
 
     if (size.lengthSq() === 0) return;
 
-    // Calculate scale to fit within target dimensions while maintaining aspect ratio
-    // We use the minimum scale factor required for the largest dimension to fit
-    // scale = min(target / source) for all axes.
-    const scaleX = targetDims.width / size.x;
-    const scaleY = targetDims.height / size.y;
-    const scaleZ = targetDims.depth / size.z;
-
-    const scaleFactor = Math.min(scaleX, scaleY, scaleZ);
+    // Apply scale so the raw bounding box width matches realWorldWidthMeters
+    const scaleFactor = realWorldWidthMeters / size.x;
 
     clonedScene.scale.set(scaleFactor, scaleFactor, scaleFactor);
 
     // Center the model: align bottom-center of the model to (0,0,0) of the group
-    // The model center is at `center` (in unscaled local space)
-    // To center X and Z: shift by -center.x * scale, -center.z * scale
-    // To align bottom Y: shift by -box.min.y * scale
-
     clonedScene.position.x = -center.x * scaleFactor;
     clonedScene.position.z = -center.z * scaleFactor;
     clonedScene.position.y = -box.min.y * scaleFactor;
 
-  }, [clonedScene, targetDims]);
+  }, [clonedScene, realWorldWidthMeters]);
 
   return <primitive object={clonedScene} />;
 };
 
 const FurnitureItem = ({ item, isSelected, onSelect }) => {
   const mesh = useRef();
-  const { updateFurniture, room } = useDesign();
+  const { updateFurniture, room, transformMode } = useDesign();
 
   // item.furnitureId is populated object
   const dims = item.furnitureId?.dimensions || { width: 1, height: 1, depth: 1 };
   const modelUrl = item.furnitureId?.modelUrl;
+  const realWorldWidthMeters = item.furnitureId?.realWorldWidthMeters || 1; // Default to 1 if not provided
 
   const handleTransformEnd = () => {
     if (mesh.current) {
@@ -120,7 +111,7 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
                 <GLTFModel
                   url={modelUrl}
                   color={item.color || '#ffffff'}
-                  targetDims={dims}
+                  realWorldWidthMeters={realWorldWidthMeters}
                 />
              </Suspense>
           </ModelErrorBoundary>
@@ -130,7 +121,14 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
 
   if (isSelected) {
       return (
-          <TransformControls mode="translate" onMouseUp={handleTransformEnd} makeDefault>
+          <TransformControls
+             mode={transformMode}
+             onMouseUp={handleTransformEnd}
+             makeDefault
+             showY={transformMode === 'translate' ? false : true}
+             showX={transformMode === 'rotate' ? false : true}
+             showZ={transformMode === 'rotate' ? false : true}
+          >
               {MeshComponent}
           </TransformControls>
       );

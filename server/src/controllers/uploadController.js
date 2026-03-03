@@ -1,18 +1,16 @@
 const path = require('path');
 const multer = require('multer');
+const cloudinary = require('cloudinary').v2;
+const streamifier = require('streamifier');
 const Furniture = require('../models/Furniture');
 
-const storage = multer.diskStorage({
-  destination(req, file, cb) {
-    cb(null, 'uploads/');
-  },
-  filename(req, file, cb) {
-    cb(
-      null,
-      `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`
-    );
-  },
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
+const storage = multer.memoryStorage();
 
 function checkFileType(file, cb) {
   const filetypes = /glb|gltf/;
@@ -32,12 +30,29 @@ const upload = multer({
   },
 });
 
+const uploadToCloudinary = (fileBuffer, originalname) => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: '3d-models',
+        resource_type: 'raw',
+        public_id: `${path.parse(originalname).name}-${Date.now()}${path.extname(originalname)}`,
+      },
+      (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      }
+    );
+    streamifier.createReadStream(fileBuffer).pipe(uploadStream);
+  });
+};
+
 // @desc    Upload new furniture item
 // @route   POST /api/furniture/upload
 // @access  Private/Admin
 const updateFurniture = async (req, res) => {
   try {
-    const { name, type, width, height, depth, price, description, color } = req.body;
+    const { name, type, width, height, depth, price, description, color, realWorldWidthMeters } = req.body;
 
     const furniture = await Furniture.findById(req.params.id);
 
@@ -57,9 +72,14 @@ const updateFurniture = async (req, res) => {
       furniture.description = description || furniture.description;
       furniture.defaultColor = color || furniture.defaultColor;
 
+      if (realWorldWidthMeters) {
+        furniture.realWorldWidthMeters = Number(realWorldWidthMeters);
+      }
+
       // If a new file is uploaded, update the modelUrl
       if (req.file) {
-        furniture.modelUrl = `/uploads/${req.file.filename}`;
+        const result = await uploadToCloudinary(req.file.buffer, req.file.originalname);
+        furniture.modelUrl = result.secure_url;
       }
 
       const updatedFurniture = await furniture.save();
@@ -91,12 +111,18 @@ const deleteFurniture = async (req, res) => {
 
 const uploadFurniture = async (req, res) => {
   try {
-    const { name, type, width, height, depth, price, description, color } = req.body;
+    const { name, type, width, height, depth, price, description, color, realWorldWidthMeters } = req.body;
 
     // Check if file is uploaded
     if (!req.file) {
         return res.status(400).json({ message: 'Please upload a GLB file' });
     }
+
+    if (!realWorldWidthMeters || Number(realWorldWidthMeters) <= 0) {
+        return res.status(400).json({ message: 'Please provide a valid realWorldWidthMeters (> 0)' });
+    }
+
+    const result = await uploadToCloudinary(req.file.buffer, req.file.originalname);
 
     const furniture = new Furniture({
       name,
@@ -109,7 +135,8 @@ const uploadFurniture = async (req, res) => {
       price: Number(price),
       description: description || '',
       defaultColor: color || '#ffffff',
-      modelUrl: `/uploads/${req.file.filename}`, // Relative path to be served statically
+      realWorldWidthMeters: Number(realWorldWidthMeters),
+      modelUrl: result.secure_url,
       imageUrl: '', // Will use auto-generated thumbnail
     });
 

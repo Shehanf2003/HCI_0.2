@@ -11,6 +11,7 @@ const UploadFurnitureModal = ({ onClose, onUploadSuccess }) => {
     price: '',
     description: '',
     color: '#ffffff',
+    realWorldWidthMeters: '',
   });
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -79,6 +80,20 @@ const UploadFurnitureModal = ({ onClose, onUploadSuccess }) => {
               onChange={handleChange}
               required
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm p-2 text-black"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Real World Width (Meters)</label>
+            <input
+              type="number"
+              step="0.01"
+              name="realWorldWidthMeters"
+              value={formData.realWorldWidthMeters}
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white sm:text-sm p-2 text-black"
+              placeholder="e.g. 1.5"
             />
           </div>
 

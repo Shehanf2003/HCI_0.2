@@ -27,6 +27,11 @@ const furnitureSchema = mongoose.Schema(
       type: Number,
       default: 0,
     },
+    realWorldWidthMeters: {
+      type: Number,
+      required: true,
+      min: [0.01, 'realWorldWidthMeters must be greater than 0'],
+    },
     imageUrl: {
       type: String, // Optional, for UI preview
     },
