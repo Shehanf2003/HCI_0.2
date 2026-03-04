@@ -1,4 +1,5 @@
-import React, { useRef, useMemo, useEffect, useLayoutEffect, Suspense } from 'react';
+import React, { useState, useRef, useMemo, useEffect, useLayoutEffect, Suspense } from 'react';
+import { useThree } from '@react-three/fiber';
 import { TransformControls, useGLTF } from '@react-three/drei';
 import { Box3, Vector3 } from 'three';
 import { useDesign } from '../context/DesignContext';
@@ -69,20 +70,56 @@ const GLTFModel = ({ url, color, realWorldWidthMeters }) => {
 
 const FurnitureItem = ({ item, isSelected, onSelect }) => {
   const mesh = useRef();
+  const transformRef = useRef();
+  const { gl } = useThree();
   const { updateFurniture, room, transformMode } = useDesign();
+
+  // Local state for interactive movements
+  const [position, setPosition] = useState([item.position.x, item.position.y, item.position.z]);
+  const [rotation, setRotation] = useState([item.rotation.x, item.rotation.y, item.rotation.z]);
+
+  // Sync if item changes from outside
+  useEffect(() => {
+    setPosition([item.position.x, item.position.y, item.position.z]);
+    setRotation([item.rotation.x, item.rotation.y, item.rotation.z]);
+  }, [item.position, item.rotation]);
 
   // item.furnitureId is populated object
   const dims = item.furnitureId?.dimensions || { width: 1, height: 1, depth: 1 };
   const modelUrl = item.furnitureId?.modelUrl;
   const realWorldWidthMeters = item.furnitureId?.realWorldWidthMeters || 1; // Default to 1 if not provided
 
+  useEffect(() => {
+    const controls = transformRef.current;
+    if (!controls) return;
+
+    // Temporarily disable global camera controls when dragging the furniture
+    const handleDraggingChanged = (event) => {
+      const orbitControls = gl.domElement.__r3f?.root?.getState?.()?.controls;
+      if (orbitControls) {
+        orbitControls.enabled = !event.value;
+      }
+    };
+
+    controls.addEventListener('dragging-changed', handleDraggingChanged);
+    return () => controls.removeEventListener('dragging-changed', handleDraggingChanged);
+  }, [gl, isSelected]);
+
   const handleTransformEnd = () => {
-    if (mesh.current) {
-        const { position, rotation, scale } = mesh.current;
+    if (transformRef.current) {
+        const { position: newPos, rotation: newRot } = transformRef.current;
+        const newPosition = { x: newPos.x, y: newPos.y, z: newPos.z };
+        const newRotation = { x: newRot.x, y: newRot.y, z: newRot.z };
+
+        // Update local state for immediate feedback
+        setPosition([newPosition.x, newPosition.y, newPosition.z]);
+        setRotation([newRotation.x, newRotation.y, newRotation.z]);
+
+        // Sync with backend
         updateFurniture(room._id, item._id, {
-            position: { x: position.x, y: position.y, z: position.z },
-            rotation: { x: rotation.x, y: rotation.y, z: rotation.z },
-            scale: { x: scale.x, y: scale.y, z: scale.z },
+            position: newPosition,
+            rotation: newRotation,
+            scale: item.scale,
         });
     }
   };
@@ -97,8 +134,8 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
   const MeshComponent = (
     <group
       ref={mesh}
-      position={[item.position.x, item.position.y, item.position.z]}
-      rotation={[item.rotation.x, item.rotation.y, item.rotation.z]}
+      position={!isSelected ? position : [0, 0, 0]} // When selected, transform controls handle the position
+      rotation={!isSelected ? rotation : [0, 0, 0]} // When selected, transform controls handle the rotation
       scale={[item.scale.x, item.scale.y, item.scale.z]}
       onClick={(e) => {
         e.stopPropagation();
@@ -122,9 +159,11 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
   if (isSelected) {
       return (
           <TransformControls
+             ref={transformRef}
              mode={transformMode}
+             position={position}
+             rotation={rotation}
              onMouseUp={handleTransformEnd}
-             makeDefault
              showY={transformMode === 'translate' ? false : true}
              showX={transformMode === 'rotate' ? false : true}
              showZ={transformMode === 'rotate' ? false : true}
