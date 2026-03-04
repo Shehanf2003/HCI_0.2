@@ -1,9 +1,13 @@
-[dotenv@17.3.1] injecting env (2) from .env -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
-MONGO_URI not found, starting in-memory MongoDB...
-In-memory MongoDB started at mongodb://127.0.0.1:37667/
-MongoDB Connected: 127.0.0.1
-Seeding Users...
-User Seeded
-Seeding Furniture...
-Furniture Seeded
+[dotenv@17.3.1] injecting env (6) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+Local MongoDB not reachable. Starting in-memory MongoDB...
+In-memory MongoDB started at mongodb://127.0.0.1:42375/
+Checking Users...
+Seeded user: testuser@example.com
+Seeded user: admin@example.com
+User check complete.
+Checking Furniture...
+Seeded furniture: Modern Chair
+Seeded furniture: Dining Table
+Seeded furniture: Comfort Sofa
+Furniture check complete.
 Server running in undefined mode on port 5001

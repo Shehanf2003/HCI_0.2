@@ -6,7 +6,8 @@
     "defaultColor": "#FF5733",
     "price": 150,
     "description": "A stylish and comfortable modern chair, perfect for any living room or office space.",
-    "modelUrl": "/assets/chair.glb"
+    "modelUrl": "/assets/chair.glb",
+    "realWorldWidthMeters": 0.5
   },
   {
     "name": "Dining Table",
@@ -15,7 +16,8 @@
     "defaultColor": "#8B4513",
     "price": 450,
     "description": "A sturdy dining table made from high-quality wood, ideal for family dinners.",
-    "modelUrl": "/assets/table.glb"
+    "modelUrl": "/assets/table.glb",
+    "realWorldWidthMeters": 1.5
   },
   {
     "name": "Comfort Sofa",
@@ -24,6 +26,7 @@
     "defaultColor": "#3357FF",
     "price": 800,
     "description": "Relax in style with this plush, comfortable sofa. Great for lounging and entertaining.",
-    "modelUrl": "/assets/sofa.glb"
+    "modelUrl": "/assets/sofa.glb",
+    "realWorldWidthMeters": 2.0
   }
 ]

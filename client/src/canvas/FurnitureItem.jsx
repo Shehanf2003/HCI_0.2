@@ -31,8 +31,8 @@ const GLTFModel = ({ url, color, realWorldWidthMeters }) => {
       if (child.isMesh) {
         child.castShadow = true;
         child.receiveShadow = true;
-        child.material = child.material.clone();
-        child.material.color.set(color);
+        // child.material = child.material.clone();
+        // child.material.color.set(color);
       }
     });
   }, [clonedScene, color]);
@@ -69,7 +69,7 @@ const GLTFModel = ({ url, color, realWorldWidthMeters }) => {
 };
 
 const FurnitureItem = ({ item, isSelected, onSelect }) => {
-  const mesh = useRef();
+  const meshRef = useRef();
   const transformRef = useRef();
   const { controls } = useThree();
   const { updateFurniture, room, transformMode } = useDesign();
@@ -93,7 +93,6 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
     const tControls = transformRef.current;
     if (!tControls) return;
 
-    // Temporarily disable global camera controls when dragging the furniture
     const handleDraggingChanged = (event) => {
       if (controls) {
         controls.enabled = !event.value;
@@ -103,40 +102,48 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
     tControls.addEventListener('dragging-changed', handleDraggingChanged);
     return () => {
       tControls.removeEventListener('dragging-changed', handleDraggingChanged);
-      // Ensure controls are re-enabled if component unmounts while dragging
       if (controls) controls.enabled = true;
     };
   }, [controls, isSelected]);
+
+  // Manually attach TransformControls to the mesh when selected
+  useEffect(() => {
+    if (isSelected && transformRef.current && meshRef.current) {
+      transformRef.current.attach(meshRef.current);
+    } else if (!isSelected && transformRef.current) {
+      transformRef.current.detach();
+    }
+  }, [isSelected, transformMode]);
 
   const roundToDecimals = (val, decimals = 3) => {
     return Number(Math.round(val + 'e' + decimals) + 'e-' + decimals);
   };
 
   const handleTransformEnd = () => {
-    if (transformRef.current) {
-        const { position: newPos, rotation: newRot } = transformRef.current;
+    if (transformRef.current && transformRef.current.object) {
+      const obj = transformRef.current.object;
 
-        const newPosition = {
-          x: roundToDecimals(newPos.x),
-          y: roundToDecimals(newPos.y),
-          z: roundToDecimals(newPos.z)
-        };
-        const newRotation = {
-          x: roundToDecimals(newRot.x),
-          y: roundToDecimals(newRot.y),
-          z: roundToDecimals(newRot.z)
-        };
+      const newPosition = {
+        x: roundToDecimals(obj.position.x),
+        y: roundToDecimals(obj.position.y),
+        z: roundToDecimals(obj.position.z)
+      };
+      const newRotation = {
+        x: roundToDecimals(obj.rotation.x),
+        y: roundToDecimals(obj.rotation.y),
+        z: roundToDecimals(obj.rotation.z)
+      };
 
-        // Update local state for immediate feedback
-        setPosition([newPosition.x, newPosition.y, newPosition.z]);
-        setRotation([newRotation.x, newRotation.y, newRotation.z]);
+      // Update local state for immediate feedback
+      setPosition([newPosition.x, newPosition.y, newPosition.z]);
+      setRotation([newRotation.x, newRotation.y, newRotation.z]);
 
-        // Sync with backend
-        updateFurniture(room._id, item._id, {
-            position: newPosition,
-            rotation: newRotation,
-            scale: item.scale,
-        });
+      // Sync with backend
+      updateFurniture(room._id, item._id, {
+        position: newPosition,
+        rotation: newRotation,
+        scale: item.scale,
+      });
     }
   };
 
@@ -147,17 +154,28 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
     </mesh>
   );
 
-  const MeshComponent = (
-    <group
-      ref={mesh}
-      position={!isSelected ? position : [0, 0, 0]} // When selected, transform controls handle the position
-      rotation={!isSelected ? rotation : [0, 0, 0]} // When selected, transform controls handle the rotation
-      scale={[item.scale.x, item.scale.y, item.scale.z]}
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelect(item._id);
-      }}
-    >
+  return (
+    <>
+      {isSelected && (
+        <TransformControls
+          ref={transformRef}
+          mode={transformMode}
+          onMouseUp={handleTransformEnd}
+          showY={transformMode === 'translate' ? false : true}
+          showX={transformMode === 'rotate' ? false : true}
+          showZ={transformMode === 'rotate' ? false : true}
+        />
+      )}
+      <group
+        ref={meshRef}
+        position={position}
+        rotation={rotation}
+        scale={[item.scale.x, item.scale.y, item.scale.z]}
+        onClick={(e) => {
+          e.stopPropagation();
+          onSelect(item._id);
+        }}
+      >
         {modelUrl ? (
           <ModelErrorBoundary fallback={FallbackMesh}>
              <Suspense fallback={FallbackMesh}>
@@ -169,27 +187,9 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
              </Suspense>
           </ModelErrorBoundary>
         ) : FallbackMesh}
-    </group>
+      </group>
+    </>
   );
-
-  if (isSelected) {
-      return (
-          <TransformControls
-             ref={transformRef}
-             mode={transformMode}
-             position={position}
-             rotation={rotation}
-             onMouseUp={handleTransformEnd}
-             showY={transformMode === 'translate' ? false : true}
-             showX={transformMode === 'rotate' ? false : true}
-             showZ={transformMode === 'rotate' ? false : true}
-          >
-              {MeshComponent}
-          </TransformControls>
-      );
-  }
-
-  return MeshComponent;
 };
 
 export default FurnitureItem;
