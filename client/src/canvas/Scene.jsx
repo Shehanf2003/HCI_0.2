@@ -25,6 +25,7 @@ const Scene = () => {
             )}
 
             <OrbitControls
+                makeDefault
                 enableRotate={viewMode === '3D'}
                 enableZoom={true}
                 enablePan={true}

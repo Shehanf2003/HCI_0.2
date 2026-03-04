@@ -71,7 +71,7 @@ const GLTFModel = ({ url, color, realWorldWidthMeters }) => {
 const FurnitureItem = ({ item, isSelected, onSelect }) => {
   const mesh = useRef();
   const transformRef = useRef();
-  const { gl } = useThree();
+  const { controls } = useThree();
   const { updateFurniture, room, transformMode } = useDesign();
 
   // Local state for interactive movements
@@ -90,26 +90,42 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
   const realWorldWidthMeters = item.furnitureId?.realWorldWidthMeters || 1; // Default to 1 if not provided
 
   useEffect(() => {
-    const controls = transformRef.current;
-    if (!controls) return;
+    const tControls = transformRef.current;
+    if (!tControls) return;
 
     // Temporarily disable global camera controls when dragging the furniture
     const handleDraggingChanged = (event) => {
-      const orbitControls = gl.domElement.__r3f?.root?.getState?.()?.controls;
-      if (orbitControls) {
-        orbitControls.enabled = !event.value;
+      if (controls) {
+        controls.enabled = !event.value;
       }
     };
 
-    controls.addEventListener('dragging-changed', handleDraggingChanged);
-    return () => controls.removeEventListener('dragging-changed', handleDraggingChanged);
-  }, [gl, isSelected]);
+    tControls.addEventListener('dragging-changed', handleDraggingChanged);
+    return () => {
+      tControls.removeEventListener('dragging-changed', handleDraggingChanged);
+      // Ensure controls are re-enabled if component unmounts while dragging
+      if (controls) controls.enabled = true;
+    };
+  }, [controls, isSelected]);
+
+  const roundToDecimals = (val, decimals = 3) => {
+    return Number(Math.round(val + 'e' + decimals) + 'e-' + decimals);
+  };
 
   const handleTransformEnd = () => {
     if (transformRef.current) {
         const { position: newPos, rotation: newRot } = transformRef.current;
-        const newPosition = { x: newPos.x, y: newPos.y, z: newPos.z };
-        const newRotation = { x: newRot.x, y: newRot.y, z: newRot.z };
+
+        const newPosition = {
+          x: roundToDecimals(newPos.x),
+          y: roundToDecimals(newPos.y),
+          z: roundToDecimals(newPos.z)
+        };
+        const newRotation = {
+          x: roundToDecimals(newRot.x),
+          y: roundToDecimals(newRot.y),
+          z: roundToDecimals(newRot.z)
+        };
 
         // Update local state for immediate feedback
         setPosition([newPosition.x, newPosition.y, newPosition.z]);
