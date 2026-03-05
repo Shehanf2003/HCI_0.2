@@ -116,7 +116,7 @@ const RotationHandle = ({ onRotate, isSelected }) => {
 const FurnitureItem = ({ item, isSelected, onSelect }) => {
   const meshRef = useRef();
   const { camera, scene, size: viewportSize, gl, controls } = useThree();
-  const { updateFurniture, room } = useDesign();
+  const { updateFurniture, room, isPaintMode, activePaintColor } = useDesign();
 
   // Local state for interactive movements
   const [position, setPosition] = useState([item.position.x, item.position.y, item.position.z]);
@@ -161,7 +161,7 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
   const dragOffset = useRef(new Vector3());
 
   const bindDrag = useDrag(({ event, active, first, last, xy: [clientX, clientY] }) => {
-    if (!isSelected) return;
+    if (!isSelected || isPaintMode) return; // Do not allow dragging if in Paint Mode
 
     // Disable orbit controls while dragging
     if (controls) controls.enabled = !active;
@@ -219,7 +219,7 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
   }, { pointerEvents: true });
 
   const bindRotate = useDrag(({ event, active, last, xy: [clientX, clientY] }) => {
-    if (!isSelected) return;
+    if (!isSelected || isPaintMode) return; // Do not allow rotating if in Paint Mode
 
     // Disable orbit controls while dragging
     if (controls) controls.enabled = !active;
@@ -305,10 +305,10 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
                 customColors={item.customColors}
                 realWorldWidthMeters={realWorldWidthMeters}
                 onMeshClick={(e, meshName) => {
-                  if (isSelected) {
-                    e.stopPropagation(); // Stop the event so the group onClick doesn't fire and just re-select
+                  if (isSelected && isPaintMode) {
+                    e.stopPropagation(); // Prevent re-selection drag conflicts
                     const currentCustomColors = item.customColors || {};
-                    const newCustomColors = { ...currentCustomColors, [meshName]: item.color || '#ffffff' };
+                    const newCustomColors = { ...currentCustomColors, [meshName]: activePaintColor };
                     updateFurniture(room._id, item._id, {
                       customColors: newCustomColors
                     });

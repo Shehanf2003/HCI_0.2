@@ -16,6 +16,8 @@ export const DesignProvider = ({ children }) => {
   const [viewMode, setViewMode] = useState('2D'); // '2D' or '3D'
   const [transformMode, setTransformMode] = useState('translate'); // 'translate' or 'rotate'
   const [selectedFurnitureId, setSelectedFurnitureId] = useState(null);
+  const [isPaintMode, setIsPaintMode] = useState(false);
+  const [activePaintColor, setActivePaintColor] = useState('#ffffff');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -96,6 +98,10 @@ export const DesignProvider = ({ children }) => {
     setTransformMode,
     selectedFurnitureId,
     setSelectedFurnitureId,
+    isPaintMode,
+    setIsPaintMode,
+    activePaintColor,
+    setActivePaintColor,
     loading,
     error,
     loadDesign,
