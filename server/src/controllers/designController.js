@@ -7,7 +7,7 @@ const { calculateTotalDesignCost } = require('../services/pricingService');
 // @route   POST /api/designs/:roomId/furniture
 // @access  Private
 const addFurnitureItem = async (req, res) => {
-  const { furnitureId, position, rotation, scale, color } = req.body;
+  const { furnitureId, position, rotation, scale, color, customColors } = req.body;
 
   const room = await Room.findById(req.params.roomId);
 
@@ -25,7 +25,8 @@ const addFurnitureItem = async (req, res) => {
       position,
       rotation,
       scale: finalScale,
-      color
+      color,
+      customColors: customColors || {}
     };
 
     // Optional: Validate if it fits
@@ -46,7 +47,7 @@ const addFurnitureItem = async (req, res) => {
 // @route   PUT /api/designs/:roomId/furniture/:itemId
 // @access  Private
 const updateFurnitureItem = async (req, res) => {
-  const { position, rotation, scale, color } = req.body;
+  const { position, rotation, scale, color, customColors } = req.body;
   const room = await Room.findById(req.params.roomId);
 
   if (room) {
@@ -59,10 +60,11 @@ const updateFurnitureItem = async (req, res) => {
 
       if (itemIndex > -1) {
           const item = room.furnitureItems[itemIndex];
-          item.position = position || item.position;
-          item.rotation = rotation || item.rotation;
-          item.scale = scale || item.scale;
-          item.color = color || item.color;
+          if (position !== undefined) item.position = position;
+          if (rotation !== undefined) item.rotation = rotation;
+          if (scale !== undefined) item.scale = scale;
+          if (color !== undefined) item.color = color;
+          if (customColors !== undefined) item.customColors = customColors;
 
           room.furnitureItems[itemIndex] = item;
           await room.save();
