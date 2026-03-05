@@ -1,7 +1,8 @@
 import React, { useState, useRef, useMemo, useEffect, useLayoutEffect, Suspense } from 'react';
 import { useThree } from '@react-three/fiber';
-import { TransformControls, useGLTF } from '@react-three/drei';
-import { Box3, Vector3 } from 'three';
+import { useGLTF } from '@react-three/drei';
+import { Box3, Vector3, Plane, Raycaster, Matrix4 } from 'three';
+import { useDrag } from '@use-gesture/react';
 import { useDesign } from '../context/DesignContext';
 
 class ModelErrorBoundary extends React.Component {
@@ -31,8 +32,6 @@ const GLTFModel = ({ url, color, realWorldWidthMeters }) => {
       if (child.isMesh) {
         child.castShadow = true;
         child.receiveShadow = true;
-        // child.material = child.material.clone();
-        // child.material.color.set(color);
       }
     });
   }, [clonedScene, color]);
@@ -68,84 +67,174 @@ const GLTFModel = ({ url, color, realWorldWidthMeters }) => {
   return <primitive object={clonedScene} />;
 };
 
+// Rotation Handle Component
+const RotationHandle = ({ onRotate, isSelected }) => {
+  if (!isSelected) return null;
+
+  return (
+    <mesh
+      position={[0, 0.5, 1.5]} // Positioned slightly outside and above the base
+      {...onRotate()}
+      visible={isSelected}
+    >
+      <sphereGeometry args={[0.2, 16, 16]} />
+      <meshStandardMaterial color="hotpink" />
+    </mesh>
+  );
+};
+
 const FurnitureItem = ({ item, isSelected, onSelect }) => {
   const meshRef = useRef();
-  const transformRef = useRef();
-  const { controls } = useThree();
-  const { updateFurniture, room, transformMode } = useDesign();
+  const { camera, scene, size: viewportSize, gl, controls } = useThree();
+  const { updateFurniture, room } = useDesign();
 
   // Local state for interactive movements
   const [position, setPosition] = useState([item.position.x, item.position.y, item.position.z]);
   const [rotation, setRotation] = useState([item.rotation.x, item.rotation.y, item.rotation.z]);
+  const isDragging = useRef(false);
 
   // Sync if item changes from outside
   useEffect(() => {
-    setPosition([item.position.x, item.position.y, item.position.z]);
-    setRotation([item.rotation.x, item.rotation.y, item.rotation.z]);
+    if (!isDragging.current) {
+        setPosition([item.position.x, item.position.y, item.position.z]);
+        setRotation([item.rotation.x, item.rotation.y, item.rotation.z]);
+    }
   }, [item.position, item.rotation]);
 
-  // item.furnitureId is populated object
   const dims = item.furnitureId?.dimensions || { width: 1, height: 1, depth: 1 };
   const modelUrl = item.furnitureId?.modelUrl;
-  const realWorldWidthMeters = item.furnitureId?.realWorldWidthMeters || 1; // Default to 1 if not provided
-
-  useEffect(() => {
-    const tControls = transformRef.current;
-    if (!tControls) return;
-
-    const handleDraggingChanged = (event) => {
-      if (controls) {
-        controls.enabled = !event.value;
-      }
-    };
-
-    tControls.addEventListener('dragging-changed', handleDraggingChanged);
-    return () => {
-      tControls.removeEventListener('dragging-changed', handleDraggingChanged);
-      if (controls) controls.enabled = true;
-    };
-  }, [controls, isSelected]);
-
-  // Manually attach TransformControls to the mesh when selected
-  useEffect(() => {
-    if (isSelected && transformRef.current && meshRef.current) {
-      transformRef.current.attach(meshRef.current);
-    } else if (!isSelected && transformRef.current) {
-      transformRef.current.detach();
-    }
-  }, [isSelected, transformMode]);
+  const realWorldWidthMeters = item.furnitureId?.realWorldWidthMeters || 1;
 
   const roundToDecimals = (val, decimals = 3) => {
     return Number(Math.round(val + 'e' + decimals) + 'e-' + decimals);
   };
 
-  const handleTransformEnd = () => {
-    if (transformRef.current && transformRef.current.object) {
-      const obj = transformRef.current.object;
+  const getIntersectingBox = (prospectiveBox) => {
+    // Iterate through all other items in the scene to check for collision
+    // We assume other furniture items are in the same parent group and have userData.isFurniture = true
+    let collision = false;
+    scene.traverse((child) => {
+      // Check if it's a furniture group and NOT the current dragging item
+      if (child.userData && child.userData.isFurniture && child.userData.id !== item._id) {
+        const otherBox = new Box3().setFromObject(child);
+        if (prospectiveBox.intersectsBox(otherBox)) {
+          collision = true;
+        }
+      }
+    });
+    return collision;
+  };
 
-      const newPosition = {
-        x: roundToDecimals(obj.position.x),
-        y: roundToDecimals(obj.position.y),
-        z: roundToDecimals(obj.position.z)
+  // We memoize plane and raycaster so they aren't recreated on every render
+  const plane = useMemo(() => new Plane(new Vector3(0, 1, 0), 0), []);
+  const raycaster = useMemo(() => new Raycaster(), []);
+  const dragOffset = useRef(new Vector3());
+
+  const bindDrag = useDrag(({ event, active, first, last, xy: [clientX, clientY] }) => {
+    if (!isSelected) return;
+
+    // Disable orbit controls while dragging
+    if (controls) controls.enabled = !active;
+
+    if (active) {
+      isDragging.current = true;
+      event.stopPropagation();
+
+      const pointer = new Vector3(
+        (clientX / window.innerWidth) * 2 - 1,
+        -(clientY / window.innerHeight) * 2 + 1,
+        0.5
+      );
+      raycaster.setFromCamera(pointer, camera);
+      const intersectPoint = new Vector3();
+      raycaster.ray.intersectPlane(plane, intersectPoint);
+
+      if (first) {
+        // Calculate offset between click point and object center to drag exactly from clicked spot
+        dragOffset.current.copy(intersectPoint).sub(meshRef.current.position);
+      }
+
+      const newPos = intersectPoint.clone().sub(dragOffset.current);
+
+      // --- Collision Detection ---
+      // We need to build a prospective Box3
+      const prospectiveMesh = meshRef.current.clone();
+      prospectiveMesh.position.copy(newPos);
+      prospectiveMesh.updateMatrixWorld(true);
+      const prospectiveBox = new Box3().setFromObject(prospectiveMesh);
+
+      if (!getIntersectingBox(prospectiveBox)) {
+        // No collision, apply new position locally for real-time rendering
+        setPosition([newPos.x, item.position.y, newPos.z]); // Keep original Y
+        if (meshRef.current) {
+          meshRef.current.position.set(newPos.x, item.position.y, newPos.z);
+        }
+      }
+    }
+
+    if (last) {
+      isDragging.current = false;
+      const newPos = {
+        x: roundToDecimals(meshRef.current.position.x),
+        y: roundToDecimals(item.position.y),
+        z: roundToDecimals(meshRef.current.position.z),
       };
-      const newRotation = {
-        x: roundToDecimals(obj.rotation.x),
-        y: roundToDecimals(obj.rotation.y),
-        z: roundToDecimals(obj.rotation.z)
-      };
 
-      // Update local state for immediate feedback
-      setPosition([newPosition.x, newPosition.y, newPosition.z]);
-      setRotation([newRotation.x, newRotation.y, newRotation.z]);
-
-      // Sync with backend
       updateFurniture(room._id, item._id, {
-        position: newPosition,
-        rotation: newRotation,
+        position: newPos,
+        rotation: { x: rotation[0], y: rotation[1], z: rotation[2] },
         scale: item.scale,
       });
     }
-  };
+  }, { pointerEvents: true });
+
+  const bindRotate = useDrag(({ event, active, last, xy: [clientX, clientY] }) => {
+    if (!isSelected) return;
+
+    // Disable orbit controls while dragging
+    if (controls) controls.enabled = !active;
+
+    if (active) {
+        isDragging.current = true;
+        event.stopPropagation();
+
+        const pointer = new Vector3(
+            (clientX / window.innerWidth) * 2 - 1,
+            -(clientY / window.innerHeight) * 2 + 1,
+            0.5
+        );
+        raycaster.setFromCamera(pointer, camera);
+        const intersectPoint = new Vector3();
+        raycaster.ray.intersectPlane(plane, intersectPoint);
+
+        // Calculate angle between the object's center and the mouse intersection point
+        const objectPos = meshRef.current.position;
+        const dx = intersectPoint.x - objectPos.x;
+        const dz = intersectPoint.z - objectPos.z;
+        const angle = Math.atan2(dx, dz); // Using dx, dz for Y-axis rotation
+
+        // Update local state for real-time visual
+        setRotation([rotation[0], angle, rotation[2]]);
+        if (meshRef.current) {
+           meshRef.current.rotation.y = angle;
+        }
+    }
+
+    if (last) {
+        isDragging.current = false;
+        const newRot = {
+            x: roundToDecimals(rotation[0]),
+            y: roundToDecimals(meshRef.current.rotation.y),
+            z: roundToDecimals(rotation[2])
+        };
+
+        updateFurniture(room._id, item._id, {
+            position: { x: position[0], y: position[1], z: position[2] },
+            rotation: newRot,
+            scale: item.scale,
+        });
+    }
+  }, { pointerEvents: true });
 
   const FallbackMesh = (
     <mesh castShadow receiveShadow>
@@ -155,40 +244,41 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
   );
 
   return (
-    <>
+    <group
+      ref={meshRef}
+      position={position}
+      rotation={rotation}
+      scale={[item.scale.x, item.scale.y, item.scale.z]}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect(item._id);
+      }}
+      userData={{ isFurniture: true, id: item._id }}
+      {...bindDrag()}
+    >
       {isSelected && (
-        <TransformControls
-          ref={transformRef}
-          mode={transformMode}
-          onMouseUp={handleTransformEnd}
-          showY={transformMode === 'translate' ? false : true}
-          showX={transformMode === 'rotate' ? false : true}
-          showZ={transformMode === 'rotate' ? false : true}
-        />
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
+          <ringGeometry args={[realWorldWidthMeters/2 + 0.1, realWorldWidthMeters/2 + 0.2, 32]} />
+          <meshBasicMaterial color="#3b82f6" transparent opacity={0.8} />
+        </mesh>
       )}
-      <group
-        ref={meshRef}
-        position={position}
-        rotation={rotation}
-        scale={[item.scale.x, item.scale.y, item.scale.z]}
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect(item._id);
-        }}
-      >
-        {modelUrl ? (
-          <ModelErrorBoundary fallback={FallbackMesh}>
-             <Suspense fallback={FallbackMesh}>
-                <GLTFModel
-                  url={modelUrl}
-                  color={item.color || '#ffffff'}
-                  realWorldWidthMeters={realWorldWidthMeters}
-                />
-             </Suspense>
-          </ModelErrorBoundary>
-        ) : FallbackMesh}
-      </group>
-    </>
+
+      {/* The rotation handle is a child of the group so it rotates with the object,
+          but we apply a separate useDrag to it. */}
+      <RotationHandle onRotate={bindRotate} isSelected={isSelected} />
+
+      {modelUrl ? (
+        <ModelErrorBoundary fallback={FallbackMesh}>
+           <Suspense fallback={FallbackMesh}>
+              <GLTFModel
+                url={modelUrl}
+                color={item.color || '#ffffff'}
+                realWorldWidthMeters={realWorldWidthMeters}
+              />
+           </Suspense>
+        </ModelErrorBoundary>
+      ) : FallbackMesh}
+    </group>
   );
 };
 
