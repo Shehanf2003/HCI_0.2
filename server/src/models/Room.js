@@ -52,6 +52,11 @@ const roomSchema = mongoose.Schema(
         color: {
           type: String, // Override default color if needed
         },
+        customColors: {
+          type: Map,
+          of: String, // Map of meshName -> color hex string
+          default: {},
+        },
       },
     ],
   },

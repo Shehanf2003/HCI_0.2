@@ -1,7 +1,7 @@
 import React, { useState, useRef, useMemo, useEffect, useLayoutEffect, Suspense } from 'react';
 import { useThree } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
-import { Box3, Vector3, Plane, Raycaster, Matrix4 } from 'three';
+import { Box3, Vector3, Plane, Raycaster, Matrix4, Color } from 'three';
 import { useDrag } from '@use-gesture/react';
 import { useDesign } from '../context/DesignContext';
 
@@ -23,18 +23,36 @@ class ModelErrorBoundary extends React.Component {
   }
 }
 
-const GLTFModel = ({ url, color, realWorldWidthMeters }) => {
+const GLTFModel = ({ url, customColors, realWorldWidthMeters, onMeshClick }) => {
   const { scene } = useGLTF(url);
-  const clonedScene = useMemo(() => scene.clone(), [scene]);
+
+  // Deep clone the scene and its materials so each instance can have distinct colors
+  const clonedScene = useMemo(() => {
+    const clone = scene.clone();
+    clone.traverse((child) => {
+      if (child.isMesh) {
+        if (child.material) {
+          child.material = child.material.clone();
+        }
+      }
+    });
+    return clone;
+  }, [scene]);
 
   useEffect(() => {
     clonedScene.traverse((child) => {
       if (child.isMesh) {
         child.castShadow = true;
         child.receiveShadow = true;
+
+        // If there's a custom color for this mesh, apply it.
+        // Convert to a Three.js Color object to use ColorManagement automatically.
+        if (customColors && customColors[child.name] && child.material) {
+          child.material.color = new Color(customColors[child.name]);
+        }
       }
     });
-  }, [clonedScene, color]);
+  }, [clonedScene, customColors]);
 
   useLayoutEffect(() => {
     if (!clonedScene || !realWorldWidthMeters) return;
@@ -64,7 +82,19 @@ const GLTFModel = ({ url, color, realWorldWidthMeters }) => {
 
   }, [clonedScene, realWorldWidthMeters]);
 
-  return <primitive object={clonedScene} />;
+  return (
+    <primitive
+      object={clonedScene}
+      onClick={(e) => {
+        if (!e.intersections || e.intersections.length === 0) return;
+        // Find the first intersected mesh
+        const intersection = e.intersections.find(i => i.object && i.object.isMesh);
+        if (intersection) {
+          onMeshClick(e, intersection.object.name);
+        }
+      }}
+    />
+  );
 };
 
 // Rotation Handle Component
@@ -272,8 +302,18 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
            <Suspense fallback={FallbackMesh}>
               <GLTFModel
                 url={modelUrl}
-                color={item.color || '#ffffff'}
+                customColors={item.customColors}
                 realWorldWidthMeters={realWorldWidthMeters}
+                onMeshClick={(e, meshName) => {
+                  if (isSelected) {
+                    e.stopPropagation(); // Stop the event so the group onClick doesn't fire and just re-select
+                    const currentCustomColors = item.customColors || {};
+                    const newCustomColors = { ...currentCustomColors, [meshName]: item.color || '#ffffff' };
+                    updateFurniture(room._id, item._id, {
+                      customColors: newCustomColors
+                    });
+                  }
+                }}
               />
            </Suspense>
         </ModelErrorBoundary>
