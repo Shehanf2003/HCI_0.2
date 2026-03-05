@@ -4,7 +4,7 @@ import Input from '../../components/UI/Input';
 import Button from '../../components/UI/Button';
 
 const PropertiesPanel = () => {
-  const { room, selectedFurnitureId, setSelectedFurnitureId, updateFurniture, removeFurniture, updateRoomSpecs } = useDesign();
+  const { room, selectedFurnitureId, setSelectedFurnitureId, updateFurniture, removeFurniture, updateRoomSpecs, isPaintMode, setIsPaintMode, activePaintColor, setActivePaintColor } = useDesign();
   const [selectedItem, setSelectedItem] = useState(null);
 
   useEffect(() => {
@@ -18,6 +18,13 @@ const PropertiesPanel = () => {
 
   const handleChange = (field, value, subfield = null) => {
     if (!selectedItem) return;
+
+    // If changing color, enter paint mode
+    if (field === 'color') {
+      setActivePaintColor(value);
+      setIsPaintMode(true);
+      return; // We don't update the base color anymore, we just enter paint mode to color specific meshes
+    }
 
     let updates = {};
     if (subfield) {
@@ -171,12 +178,28 @@ const PropertiesPanel = () => {
       </div>
 
       <div className="mb-4">
-        <h4 className="text-sm font-medium mb-2">Color</h4>
-        <Input
-            type="color"
-            value={selectedItem.color || '#ffffff'}
-            onChange={(e) => handleChange('color', e.target.value)}
-        />
+        <h4 className="text-sm font-medium mb-2">Paint Color</h4>
+        <div className="flex flex-col gap-2">
+            <Input
+                type="color"
+                value={isPaintMode ? activePaintColor : (selectedItem.color || '#ffffff')}
+                onChange={(e) => handleChange('color', e.target.value)}
+            />
+            {isPaintMode && (
+                <div className="flex items-center justify-between bg-blue-50 dark:bg-blue-900/30 p-2 rounded border border-blue-200 dark:border-blue-800">
+                    <span className="text-xs text-blue-700 dark:text-blue-300 font-medium">
+                        Paint mode active
+                    </span>
+                    <Button
+                        variant="secondary"
+                        className="py-1 px-2 text-xs"
+                        onClick={() => setIsPaintMode(false)}
+                    >
+                        Done
+                    </Button>
+                </div>
+            )}
+        </div>
       </div>
 
       <Button variant="danger" onClick={() => removeFurniture(room._id, selectedItem._id)}>

@@ -8,14 +8,16 @@ import Lights from './Lights';
 import DragDropController from './DragDropController';
 
 const Scene = () => {
-  const { room, viewMode, selectedFurnitureId, setSelectedFurnitureId } = useDesign();
+  const { room, viewMode, selectedFurnitureId, setSelectedFurnitureId, isPaintMode } = useDesign();
 
   const handleMissed = () => {
     setSelectedFurnitureId(null);
   };
 
   return (
-    <div className="h-full w-full bg-gray-200 dark:bg-gray-900 transition-colors duration-300">
+    <div
+      className={`h-full w-full bg-gray-200 dark:bg-gray-900 transition-colors duration-300 ${isPaintMode ? 'cursor-crosshair' : ''}`}
+    >
       <Canvas shadows onPointerMissed={handleMissed}>
         <Suspense fallback={null}>
             {viewMode === '3D' ? (
