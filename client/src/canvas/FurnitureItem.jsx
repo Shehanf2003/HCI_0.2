@@ -121,7 +121,27 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
   // Local state for interactive movements
   const [position, setPosition] = useState([item.position.x, item.position.y, item.position.z]);
   const [rotation, setRotation] = useState([item.rotation.x, item.rotation.y, item.rotation.z]);
+  const [hovered, setHovered] = useState(false);
   const isDragging = useRef(false);
+
+  useEffect(() => {
+    if (isPaintMode) {
+      document.body.style.cursor = 'crosshair';
+      return;
+    }
+
+    if (isDragging.current) {
+      document.body.style.cursor = 'grabbing';
+    } else if (hovered && isSelected) {
+      document.body.style.cursor = 'grab';
+    } else {
+      document.body.style.cursor = 'auto';
+    }
+
+    return () => {
+      document.body.style.cursor = 'auto';
+    };
+  }, [hovered, isDragging.current, isPaintMode, isSelected]);
 
   // Sync if item changes from outside
   useEffect(() => {
@@ -143,11 +163,36 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
     // Iterate through all other items in the scene to check for collision
     // We assume other furniture items are in the same parent group and have userData.isFurniture = true
     let collision = false;
+
+    // Scale down the prospective box slightly to allow objects to get closer
+    const scaleFactor = 0.85; // 15% reduction in bounding box for collision detection
+    const prospectiveCenter = new Vector3();
+    const prospectiveSize = new Vector3();
+    prospectiveBox.getCenter(prospectiveCenter);
+    prospectiveBox.getSize(prospectiveSize);
+
+    const scaledProspectiveBox = new Box3().setFromCenterAndSize(
+      prospectiveCenter,
+      prospectiveSize.multiplyScalar(scaleFactor)
+    );
+
     scene.traverse((child) => {
       // Check if it's a furniture group and NOT the current dragging item
       if (child.userData && child.userData.isFurniture && child.userData.id !== item._id) {
         const otherBox = new Box3().setFromObject(child);
-        if (prospectiveBox.intersectsBox(otherBox)) {
+
+        // Scale down the other box similarly
+        const otherCenter = new Vector3();
+        const otherSize = new Vector3();
+        otherBox.getCenter(otherCenter);
+        otherBox.getSize(otherSize);
+
+        const scaledOtherBox = new Box3().setFromCenterAndSize(
+          otherCenter,
+          otherSize.multiplyScalar(scaleFactor)
+        );
+
+        if (scaledProspectiveBox.intersectsBox(scaledOtherBox)) {
           collision = true;
         }
       }
@@ -167,7 +212,10 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
     if (controls) controls.enabled = !active;
 
     if (active) {
-      isDragging.current = true;
+      if (!isDragging.current) {
+        isDragging.current = true;
+        document.body.style.cursor = 'grabbing';
+      }
       event.stopPropagation();
 
       const pointer = new Vector3(
@@ -204,6 +252,11 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
 
     if (last) {
       isDragging.current = false;
+      if (hovered) {
+        document.body.style.cursor = 'grab';
+      } else {
+        document.body.style.cursor = 'auto';
+      }
       const newPos = {
         x: roundToDecimals(meshRef.current.position.x),
         y: roundToDecimals(item.position.y),
@@ -225,7 +278,10 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
     if (controls) controls.enabled = !active;
 
     if (active) {
-        isDragging.current = true;
+        if (!isDragging.current) {
+            isDragging.current = true;
+            document.body.style.cursor = 'grabbing';
+        }
         event.stopPropagation();
 
         const pointer = new Vector3(
@@ -252,6 +308,11 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
 
     if (last) {
         isDragging.current = false;
+        if (hovered) {
+            document.body.style.cursor = 'grab';
+        } else {
+            document.body.style.cursor = 'auto';
+        }
         const newRot = {
             x: roundToDecimals(rotation[0]),
             y: roundToDecimals(meshRef.current.rotation.y),
@@ -282,6 +343,13 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
       onClick={(e) => {
         e.stopPropagation();
         onSelect(item._id);
+      }}
+      onPointerOver={(e) => {
+        e.stopPropagation();
+        setHovered(true);
+      }}
+      onPointerOut={(e) => {
+        setHovered(false);
       }}
       userData={{ isFurniture: true, id: item._id }}
       {...bindDrag()}

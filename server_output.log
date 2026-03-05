@@ -1,0 +1,7 @@
+
+> server@1.0.0 start
+> node src/app.js
+
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+Error: MONGO_URI is required
