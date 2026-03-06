@@ -160,12 +160,34 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
   };
 
   const getIntersectingBox = (prospectiveBox) => {
+    // Check against room walls first
+    // In Room.jsx, dimensions are length(x), width(z), height(y). Floor is at y=0.
+    // The room boundaries on X axis are from -length/2 to length/2.
+    // The room boundaries on Z axis are from -width/2 to width/2.
+    if (room && room.dimensions) {
+      const { length, width } = room.dimensions;
+      const minX = -length / 2;
+      const maxX = length / 2;
+      const minZ = -width / 2;
+      const maxZ = width / 2;
+
+      // If any part of the prospectiveBox is outside the room, it's a collision
+      if (
+        prospectiveBox.min.x < minX ||
+        prospectiveBox.max.x > maxX ||
+        prospectiveBox.min.z < minZ ||
+        prospectiveBox.max.z > maxZ
+      ) {
+        return true;
+      }
+    }
+
     // Iterate through all other items in the scene to check for collision
     // We assume other furniture items are in the same parent group and have userData.isFurniture = true
     let collision = false;
 
     // Scale down the prospective box slightly to allow objects to get closer
-    const scaleFactor = 0.85; // 15% reduction in bounding box for collision detection
+    const scaleFactor = 0.5; // 50% reduction in bounding box for collision detection
     const prospectiveCenter = new Vector3();
     const prospectiveSize = new Vector3();
     prospectiveBox.getCenter(prospectiveCenter);
