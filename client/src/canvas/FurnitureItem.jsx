@@ -392,12 +392,12 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
            <Suspense fallback={FallbackMesh}>
               <GLTFModel
                 url={modelUrl}
-                customColors={item.customColors}
+                customColors={item.customColors ? (typeof item.customColors.get === 'function' ? Object.fromEntries(item.customColors) : item.customColors) : {}}
                 realWorldWidthMeters={realWorldWidthMeters}
                 onMeshClick={(e, meshName) => {
                   if (isSelected && isPaintMode) {
                     e.stopPropagation(); // Prevent re-selection drag conflicts
-                    const currentCustomColors = item.customColors || {};
+                    const currentCustomColors = item.customColors ? (typeof item.customColors.get === 'function' ? Object.fromEntries(item.customColors) : item.customColors) : {};
                     const newCustomColors = { ...currentCustomColors, [meshName]: activePaintColor };
                     updateFurniture(room._id, item._id, {
                       customColors: newCustomColors

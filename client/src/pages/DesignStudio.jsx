@@ -6,6 +6,7 @@ import PropertiesPanel from '../features/designer/PropertiesPanel';
 import FurnitureCatalog from '../features/designer/FurnitureCatalog';
 import Scene from '../canvas/Scene';
 import UserGuideModal from '../components/UI/UserGuideModal';
+import LoadingScreen from '../components/UI/LoadingScreen';
 
 const DesignStudioContent = () => {
   const { id } = useParams();
@@ -14,6 +15,8 @@ const DesignStudioContent = () => {
   const isAdmin = userInfo?.isAdmin;
   const [isCatalogOpen, setIsCatalogOpen] = useState(true);
   const [isPropertiesOpen, setIsPropertiesOpen] = useState(true);
+  const [isWorkspaceReady, setIsWorkspaceReady] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -21,11 +24,35 @@ const DesignStudioContent = () => {
     }
   }, [id]);
 
-  if (loading) return <div className="p-4 pt-20 dark:text-white dark:bg-gray-900 min-h-screen">Loading design...</div>;
+  useEffect(() => {
+    if (room && !loading) {
+      // Small delay to ensure the loading screen shows briefly
+      // and allows 3D components to mount in the background
+      const timer = setTimeout(() => {
+        setIsWorkspaceReady(true);
+
+        // Check if the user has seen the guide
+        const hasSeenGuide = localStorage.getItem('hasSeenGuide');
+        if (!hasSeenGuide) {
+          setShowGuide(true);
+        }
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [room, loading]);
+
+  const handleCloseGuide = () => {
+    localStorage.setItem('hasSeenGuide', 'true');
+    setShowGuide(false);
+  };
+
   if (error) return <div className="p-4 pt-20 text-red-500 dark:bg-gray-900 min-h-screen">Error: {error}</div>;
-  if (!room) return <div className="p-4 pt-20 dark:text-white dark:bg-gray-900 min-h-screen">Design not found</div>;
+  if (!room && !loading) return <div className="p-4 pt-20 dark:text-white dark:bg-gray-900 min-h-screen">Design not found</div>;
 
   return (
+    <>
+      {(!isWorkspaceReady || loading) && <LoadingScreen />}
+      <UserGuideModal isOpen={showGuide} onClose={handleCloseGuide} />
     <div className="flex flex-col h-screen pt-20 bg-gray-50 dark:bg-gray-900 transition-colors duration-300 overflow-hidden">
       <div className="flex flex-1 overflow-hidden relative">
 
@@ -95,6 +122,7 @@ const DesignStudioContent = () => {
 
       </div>
     </div>
+    </>
   );
 };
 
