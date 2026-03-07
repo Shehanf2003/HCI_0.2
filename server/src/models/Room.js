@@ -25,6 +25,8 @@ const roomSchema = mongoose.Schema(
     colorScheme: {
       wallColor: { type: String, default: '#e0e0e0' },
       floorColor: { type: String, default: '#8d6e63' },
+      wallTexture: { type: String, default: '' },
+      floorTexture: { type: String, default: '' },
     },
     // Design Layout (Furniture placement)
     furnitureItems: [

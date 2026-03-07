@@ -2,10 +2,26 @@ import React, { useEffect, useState } from 'react';
 import { useDesign } from '../../context/DesignContext';
 import Input from '../../components/UI/Input';
 import Button from '../../components/UI/Button';
+import axios from 'axios';
 
 const PropertiesPanel = () => {
   const { room, selectedFurnitureId, setSelectedFurnitureId, updateFurniture, removeFurniture, updateRoomSpecs, isPaintMode, setIsPaintMode, activePaintColor, setActivePaintColor } = useDesign();
   const [selectedItem, setSelectedItem] = useState(null);
+  const [textures, setTextures] = useState([]);
+
+  useEffect(() => {
+    const fetchTextures = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const config = { headers: { Authorization: `Bearer ${token}` } };
+        const { data } = await axios.get('/api/textures', config);
+        setTextures(data);
+      } catch (error) {
+        console.error("Failed to fetch textures:", error);
+      }
+    };
+    fetchTextures();
+  }, []);
 
   useEffect(() => {
     if (room && room.furnitureItems && selectedFurnitureId) {
@@ -98,21 +114,50 @@ const PropertiesPanel = () => {
         </div>
 
         <div className="mb-4">
-            <h4 className="text-sm font-medium mb-2">Colors</h4>
-            <Input
-                id="room-wall-color"
-                label="Wall Color"
-                type="color"
-                value={room.colorScheme?.wallColor || '#e0e0e0'}
-                onChange={(e) => handleRoomChange('colorScheme', e.target.value, 'wallColor')}
-            />
-             <Input
-                id="room-floor-color"
-                label="Floor Color"
-                type="color"
-                value={room.colorScheme?.floorColor || '#8d6e63'}
-                onChange={(e) => handleRoomChange('colorScheme', e.target.value, 'floorColor')}
-            />
+            <h4 className="text-sm font-medium mb-2">Colors & Textures</h4>
+            <div className="space-y-3">
+              <Input
+                  id="room-wall-color"
+                  label="Wall Color"
+                  type="color"
+                  value={room.colorScheme?.wallColor || '#e0e0e0'}
+                  onChange={(e) => handleRoomChange('colorScheme', e.target.value, 'wallColor')}
+              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Wall Texture</label>
+                <select
+                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  value={room.colorScheme?.wallTexture || ''}
+                  onChange={(e) => handleRoomChange('colorScheme', e.target.value, 'wallTexture')}
+                >
+                  <option value="">None (Use Color)</option>
+                  {textures.filter(t => t.type === 'wall').map(t => (
+                    <option key={t._id} value={t.url}>{t.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <Input
+                  id="room-floor-color"
+                  label="Floor Color"
+                  type="color"
+                  value={room.colorScheme?.floorColor || '#8d6e63'}
+                  onChange={(e) => handleRoomChange('colorScheme', e.target.value, 'floorColor')}
+              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Floor Texture</label>
+                <select
+                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  value={room.colorScheme?.floorTexture || ''}
+                  onChange={(e) => handleRoomChange('colorScheme', e.target.value, 'floorTexture')}
+                >
+                  <option value="">None (Use Color)</option>
+                  {textures.filter(t => t.type === 'floor').map(t => (
+                    <option key={t._id} value={t.url}>{t.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
         </div>
 
         <div className="mt-8 pt-4 border-t text-sm text-gray-500 dark:text-gray-400 dark:border-gray-700">
