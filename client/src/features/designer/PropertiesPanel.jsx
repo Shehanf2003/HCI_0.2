@@ -126,6 +126,22 @@ const PropertiesPanel = () => {
     <div className="w-full bg-gray-50 border-l p-4 overflow-y-auto h-full dark:bg-gray-800 dark:border-gray-700 dark:text-white transition-colors duration-300">
       <h3 className="font-bold mb-4">Item Properties</h3>
 
+      {selectedItem.furnitureId && selectedItem.furnitureId.name && (
+        <div className="mb-4">
+          <h4 className="text-sm font-medium mb-1">Name</h4>
+          <p className="text-sm">{selectedItem.furnitureId.name}</p>
+        </div>
+      )}
+
+      {selectedItem.furnitureId && selectedItem.furnitureId.dimensions && (
+        <div className="mb-4">
+          <h4 className="text-sm font-medium mb-1">Size (W x H x D)</h4>
+          <p className="text-sm">
+            {(selectedItem.furnitureId.dimensions.width * selectedItem.scale.x).toFixed(2)}m x {(selectedItem.furnitureId.dimensions.height * selectedItem.scale.y).toFixed(2)}m x {(selectedItem.furnitureId.dimensions.depth * selectedItem.scale.z).toFixed(2)}m
+          </p>
+        </div>
+      )}
+
       <div className="mb-4">
         <h4 className="text-sm font-medium mb-2">Position</h4>
         <div className="grid grid-cols-3 gap-2">

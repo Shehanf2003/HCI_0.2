@@ -79,7 +79,7 @@ const Dashboard = () => {
       setIsModalOpen(false);
       navigate(`/design-studio/${data._id}`);
     } catch (err) {
-      alert(err.response?.data?.message || err.message);
+      toast.error(err.response?.data?.message || err.message);
     }
   };
 
@@ -102,12 +102,23 @@ const Dashboard = () => {
       setIsEditModalOpen(false);
       fetchRooms(); // Refresh the list
     } catch (err) {
-      alert(err.response?.data?.message || err.message);
+      toast.error(err.response?.data?.message || err.message);
     }
   };
 
   const handleDeleteRoom = async (roomId) => {
-    if (!window.confirm("Are you sure you want to delete this design?")) return;
+    confirmToast("Are you sure you want to delete this design?", async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const config = { headers: { Authorization: `Bearer ${token}` } };
+        await axios.delete(`/api/rooms/${roomId}`, config);
+        setDesigns(designs.filter(d => d._id !== roomId));
+        toast.success('Design deleted successfully.');
+      } catch (err) {
+        toast.error(err.response?.data?.message || err.message);
+      }
+    });
+    return; // early return since confirmToast is async UI
 
     try {
       const token = localStorage.getItem('token');
@@ -115,7 +126,7 @@ const Dashboard = () => {
       await axios.delete(`/api/rooms/${roomId}`, config);
       fetchRooms(); // Refresh the list
     } catch (err) {
-      alert(err.response?.data?.message || err.message);
+      toast.error(err.response?.data?.message || err.message);
     }
   };
 
@@ -137,9 +148,9 @@ const Dashboard = () => {
       const config = { headers: { Authorization: `Bearer ${token}` } };
       await axios.put('/api/config', { homeBackgroundUrl: homeBgUrl }, config);
       setIsConfigModalOpen(false);
-      alert('Home background updated successfully!');
+      toast.success('Home background updated successfully!');
     } catch (err) {
-      alert(err.response?.data?.message || err.message);
+      toast.error(err.response?.data?.message || err.message);
     }
   };
 
@@ -323,7 +334,7 @@ const Dashboard = () => {
         <UploadFurnitureModal
             onClose={() => setShowUploadModal(false)}
             onUploadSuccess={() => {
-                alert('Furniture uploaded successfully!');
+                toast.success('Furniture uploaded successfully!');
             }}
         />
       )}

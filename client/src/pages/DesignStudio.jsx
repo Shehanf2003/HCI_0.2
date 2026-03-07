@@ -5,6 +5,7 @@ import ToolBar from '../features/designer/ToolBar';
 import PropertiesPanel from '../features/designer/PropertiesPanel';
 import FurnitureCatalog from '../features/designer/FurnitureCatalog';
 import Scene from '../canvas/Scene';
+import UserGuideModal from '../components/UI/UserGuideModal';
 
 const DesignStudioContent = () => {
   const { id } = useParams();
