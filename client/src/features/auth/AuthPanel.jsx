@@ -58,8 +58,8 @@ const AuthPanel = ({ isOpen, onClose }) => {
       />
 
       {/* Sliding Panel */}
-      <div className={`fixed top-0 right-0 h-full w-full max-w-sm bg-white dark:bg-gray-800 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'} flex flex-col`}>
-        <div className="flex justify-between items-center p-6 border-b dark:border-gray-700">
+      <div className={`fixed top-0 right-0 h-full w-full max-w-sm bg-white/60 dark:bg-black/40 backdrop-blur-lg border-l border-white/20 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'} flex flex-col`}>
+        <div className="flex justify-between items-center p-6 border-b border-black/10 dark:border-white/10">
           <h2 className="text-2xl font-bold dark:text-white">
             {isLogin ? 'Welcome Back' : 'Create Account'}
           </h2>
