@@ -19,10 +19,12 @@ const ProtectedRoute = ({ children }) => {
 function App() {
   return (
     <Router>
-      <Toaster position="top-right" />
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<Home />} />
+      <div className="flex flex-col min-h-screen transition-colors duration-300 backdrop-blur-md bg-white/10 dark:bg-black/10 border border-white/20 shadow-xl dark:text-gray-100 text-gray-900">
+        <Toaster position="top-right" />
+        <Navbar />
+        <main className="flex-grow">
+          <Routes>
+            <Route path="/" element={<Home />} />
 
 
         <Route
@@ -43,9 +45,11 @@ function App() {
           }
         />
 
-        {/* Default redirect */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+            {/* Default redirect */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
+      </div>
     </Router>
   );
 }
