@@ -1,8 +1,30 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import AuthPanel from '../features/auth/AuthPanel';
 
 const Home = () => {
+  const [isAuthPanelOpen, setIsAuthPanelOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Check if we were redirected here to login
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get('login') === 'true') {
+      setIsAuthPanelOpen(true);
+    }
+  }, [location]);
+  const isAuthenticated = !!localStorage.getItem('token');
+
+  const handleStartDesign = () => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    } else {
+      setIsAuthPanelOpen(true);
+    }
+  };
+
   const scrollAnimation = {
     hidden: { opacity: 0, y: 50 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.8 } }
@@ -38,14 +60,16 @@ const Home = () => {
           <p className="text-lg md:text-xl mb-10 max-w-2xl mx-auto opacity-90 drop-shadow-md">
             Collaborate with clients to create immersive 2D & 3D interior layouts in real-time.
           </p>
-          <Link
-            to="/dashboard"
-            className="bg-black/10 dark:bg-white/10 backdrop-blur-md border border-black/30 dark:border-white/30 text-gray-900 dark:text-white px-8 py-3 rounded-full text-lg font-semibold hover:bg-black/20 dark:hover:bg-white/20 transition shadow-lg inline-block"
+          <button
+            onClick={handleStartDesign}
+            className="bg-black/10 dark:bg-white/10 backdrop-blur-md border border-black/30 dark:border-white/30 text-gray-900 dark:text-white px-8 py-3 rounded-full text-lg font-semibold hover:bg-black/20 dark:hover:bg-white/20 transition shadow-lg inline-block cursor-pointer"
           >
             Enter Design Studio
-          </Link>
+          </button>
         </div>
       </header>
+
+      <AuthPanel isOpen={isAuthPanelOpen} onClose={() => setIsAuthPanelOpen(false)} />
 
      
       <div className="bg-white/60 dark:bg-black/30 backdrop-blur-md py-6 border-y border-black/10 dark:border-white/10 transition-colors duration-300">

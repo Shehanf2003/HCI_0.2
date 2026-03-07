@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import LoginPage from './pages/LoginPage';
+
 import Dashboard from './pages/Dashboard';
 import DesignStudio from './pages/DesignStudio';
 import Home from './pages/Home';
@@ -11,7 +11,7 @@ import { Toaster } from 'react-hot-toast';
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
   if (!token) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/?login=true" replace />;
   }
   return children;
 };
@@ -23,7 +23,7 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/login" element={<LoginPage />} />
+
 
         <Route
           path="/dashboard"

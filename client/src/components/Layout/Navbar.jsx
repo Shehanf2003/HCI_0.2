@@ -20,7 +20,7 @@ const Navbar = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    navigate('/login');
+    navigate('/?login=true');
   };
 
   const navClasses = theme === 'dark'
@@ -62,7 +62,7 @@ const Navbar = () => {
           </button>
         ) : (
           <Link
-            to="/login"
+            to="/?login=true"
             className={`${buttonClasses} px-6 py-2 rounded-full transition font-medium text-sm`}
           >
             Designer Login
