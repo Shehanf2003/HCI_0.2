@@ -114,22 +114,14 @@ const Dashboard = () => {
         const token = localStorage.getItem('token');
         const config = { headers: { Authorization: `Bearer ${token}` } };
         await axios.delete(`/api/rooms/${roomId}`, config);
-        setDesigns(designs.filter(d => d._id !== roomId));
+
+        // Refresh the list
+        fetchRooms();
         toast.success('Design deleted successfully.');
       } catch (err) {
         toast.error(err.response?.data?.message || err.message);
       }
     });
-    return; // early return since confirmToast is async UI
-
-    try {
-      const token = localStorage.getItem('token');
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.delete(`/api/rooms/${roomId}`, config);
-      fetchRooms(); // Refresh the list
-    } catch (err) {
-      toast.error(err.response?.data?.message || err.message);
-    }
   };
 
   const openEditModal = (room) => {
