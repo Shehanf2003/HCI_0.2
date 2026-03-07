@@ -66,25 +66,15 @@ const FurnitureCatalog = () => {
       try {
         const token = localStorage.getItem('token');
         const config = { headers: { Authorization: `Bearer ${token}` } };
-        await axios.delete(`/api/furniture/${id}`, config);
+        await axios.delete(`/api/furniture/${itemId}`, config);
 
-        // Remove from local state
-        setCatalogItems(catalogItems.filter(item => item._id !== id));
+        // Refresh the list
+        fetchFurniture();
         toast.success('Furniture item deleted successfully.');
       } catch (err) {
         toast.error(err.response?.data?.message || err.message);
       }
     });
-    return; // early return since confirmToast is async UI
-
-    try {
-      const token = localStorage.getItem('token');
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.delete(`/api/furniture/${itemId}`, config);
-      fetchFurniture(); // Refresh the list
-    } catch (err) {
-      toast.error(err.response?.data?.message || err.message);
-    }
   };
 
   const handleAddItem = (item) => {
