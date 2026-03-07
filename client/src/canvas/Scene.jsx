@@ -18,7 +18,7 @@ const Scene = () => {
     <div
       className={`h-full w-full bg-gray-200 dark:bg-gray-900 transition-colors duration-300 ${isPaintMode ? 'cursor-crosshair' : ''}`}
     >
-      <Canvas shadows onPointerMissed={handleMissed}>
+      <Canvas shadows onPointerMissed={handleMissed} gl={{ preserveDrawingBuffer: true }} id="design-canvas">
         <Suspense fallback={null}>
             {viewMode === '3D' ? (
                 <PerspectiveCamera makeDefault position={[0, 1.6, 4]} fov={50} />

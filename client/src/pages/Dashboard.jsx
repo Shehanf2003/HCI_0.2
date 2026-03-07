@@ -5,8 +5,10 @@ import Button from '../components/UI/Button';
 import Modal from '../components/Feedback/Modal';
 import Input from '../components/UI/Input';
 import UploadFurnitureModal from '../components/Admin/UploadFurnitureModal';
+import UploadTextureModal from '../components/UI/UploadTextureModal';
 import toast from 'react-hot-toast';
 import { confirmToast } from '../utils/confirmToast';
+import { ROOM_TEMPLATES } from '../utils/roomTemplates';
 
 const Dashboard = () => {
   const [rooms, setRooms] = useState([]);
@@ -17,6 +19,7 @@ const Dashboard = () => {
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [homeBgUrl, setHomeBgUrl] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showTextureModal, setShowTextureModal] = useState(false);
   const [editingRoom, setEditingRoom] = useState(null);
 
   const userInfo = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
@@ -28,6 +31,7 @@ const Dashboard = () => {
     length: 10,
     width: 10,
     height: 3,
+    templateId: 'empty',
   });
 
   const navigate = useNavigate();
@@ -67,6 +71,8 @@ const Dashboard = () => {
       const token = localStorage.getItem('token');
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
+      const selectedTemplate = ROOM_TEMPLATES.find(t => t.id === newRoom.templateId);
+
       const payload = {
         name: newRoom.name,
         dimensions: {
@@ -74,7 +80,7 @@ const Dashboard = () => {
           width: parseFloat(newRoom.width),
           height: parseFloat(newRoom.height),
         },
-        // Defaults for others
+        colorScheme: selectedTemplate ? selectedTemplate.colorScheme : undefined,
       };
 
       const { data } = await axios.post('/api/rooms', payload, config);
@@ -162,7 +168,10 @@ const Dashboard = () => {
                 Update Home Background
               </button>
               {isAdmin && (
-                <Button onClick={() => setShowUploadModal(true)}>Upload Furniture</Button>
+                <>
+                  <Button onClick={() => setShowUploadModal(true)}>Upload Furniture</Button>
+                  <Button onClick={() => setShowTextureModal(true)}>Upload Texture</Button>
+                </>
               )}
               <Button onClick={() => setIsModalOpen(true)}>Create New Design</Button>
             </div>
@@ -219,7 +228,7 @@ const Dashboard = () => {
       </div>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create New Design">
-        <form onSubmit={handleCreateRoom}>
+        <form onSubmit={handleCreateRoom} className="space-y-4">
           <Input
             label="Design Name"
             id="roomName"
@@ -227,6 +236,28 @@ const Dashboard = () => {
             onChange={(e) => setNewRoom({ ...newRoom, name: e.target.value })}
             required
           />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Start from Template</label>
+            <select
+                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                value={newRoom.templateId}
+                onChange={(e) => {
+                  const tmpl = ROOM_TEMPLATES.find(t => t.id === e.target.value);
+                  setNewRoom({
+                    ...newRoom,
+                    templateId: e.target.value,
+                    length: tmpl.dimensions.length,
+                    width: tmpl.dimensions.width,
+                    height: tmpl.dimensions.height,
+                    name: newRoom.name || tmpl.name
+                  });
+                }}
+            >
+                {ROOM_TEMPLATES.map(tmpl => (
+                  <option key={tmpl.id} value={tmpl.id}>{tmpl.name}</option>
+                ))}
+            </select>
+          </div>
           <div className="grid grid-cols-3 gap-4">
             <Input
               label="Length (m)"
@@ -329,6 +360,15 @@ const Dashboard = () => {
             onClose={() => setShowUploadModal(false)}
             onUploadSuccess={() => {
                 toast.success('Furniture uploaded successfully!');
+            }}
+        />
+      )}
+
+      {showTextureModal && (
+        <UploadTextureModal
+            onClose={() => setShowTextureModal(false)}
+            onUploadSuccess={() => {
+                toast.success('Texture uploaded successfully!');
             }}
         />
       )}

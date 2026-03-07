@@ -1,27 +1,84 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useDesign } from '../../context/DesignContext';
 import Button from '../../components/UI/Button';
+import CheckoutModal from '../../components/UI/CheckoutModal';
 
 const ToolBar = () => {
-  const { viewMode, setViewMode } = useDesign();
+  const { viewMode, setViewMode, room } = useDesign();
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+
+  const takePicture = () => {
+    const canvas = document.querySelector('#design-canvas canvas');
+    if (canvas) {
+      const dataURL = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = dataURL;
+      link.download = 'design-snapshot.png';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
+  const getCartItems = () => {
+    if (!room || !room.furnitureItems) return [];
+
+    const itemsMap = {};
+    room.furnitureItems.forEach(item => {
+      const furnId = item.furnitureId._id || item.furnitureId; // Handle populated vs non-populated
+      const price = item.furnitureId.price || 0;
+      const name = item.furnitureId.name || 'Furniture Item';
+
+      if (itemsMap[furnId]) {
+        itemsMap[furnId].quantity += 1;
+      } else {
+        itemsMap[furnId] = { id: furnId, name, price, quantity: 1 };
+      }
+    });
+
+    return Object.values(itemsMap);
+  };
+
+  const cartItems = getCartItems();
+  const totalAmount = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
 
   return (
-    <div className="bg-gray-100 p-4 border-b flex justify-between items-center dark:bg-gray-800 dark:border-gray-700 transition-colors duration-300">
-      <div className="flex items-center space-x-4">
-        <span className="font-semibold text-gray-700 dark:text-gray-200">Design Workspace</span>
-        {/* We removed the explicit "Move" and "Rotate" buttons because
-            it is now handled intuitively via drag and drop on the object directly
-            and the custom rotation handle. */}
+    <>
+      <div className="bg-gray-100 p-4 border-b flex justify-between items-center dark:bg-gray-800 dark:border-gray-700 transition-colors duration-300">
+        <div className="flex items-center space-x-4">
+          <span className="font-semibold text-gray-700 dark:text-gray-200">Design Workspace</span>
+          {/* We removed the explicit "Move" and "Rotate" buttons because
+              it is now handled intuitively via drag and drop on the object directly
+              and the custom rotation handle. */}
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="primary"
+            onClick={() => setIsCheckoutOpen(true)}
+          >
+            Checkout Furniture (${totalAmount.toFixed(2)})
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={takePicture}
+          >
+            Take a Picture
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => setViewMode(viewMode === '2D' ? '3D' : '2D')}
+          >
+            Switch to {viewMode === '2D' ? '3D' : '2D'}
+          </Button>
+        </div>
       </div>
-      <div>
-        <Button
-          variant="secondary"
-          onClick={() => setViewMode(viewMode === '2D' ? '3D' : '2D')}
-        >
-          Switch to {viewMode === '2D' ? '3D' : '2D'}
-        </Button>
-      </div>
-    </div>
+      <CheckoutModal
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        cartItems={cartItems}
+        totalAmount={totalAmount}
+      />
+    </>
   );
 };
 
