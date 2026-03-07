@@ -35,8 +35,7 @@ app.get('/', (req, res) => {
 app.use(notFound);
 app.use(errorHandler);
 
-connectDB().then(async () => {
-  await seedData();
+connectDB().then(() => {
   app.listen(PORT, () => {
     console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
   });
