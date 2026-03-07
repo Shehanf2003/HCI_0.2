@@ -5,6 +5,8 @@ import Button from '../components/UI/Button';
 import Modal from '../components/Feedback/Modal';
 import Input from '../components/UI/Input';
 import UploadFurnitureModal from '../components/Admin/UploadFurnitureModal';
+import toast from 'react-hot-toast';
+import { confirmToast } from '../utils/confirmToast';
 
 const Dashboard = () => {
   const [rooms, setRooms] = useState([]);

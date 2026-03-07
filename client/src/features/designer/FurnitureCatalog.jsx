@@ -5,6 +5,8 @@ import Button from '../../components/UI/Button';
 import { Canvas } from '@react-three/fiber';
 import { Center, Environment, useGLTF, Stage } from '@react-three/drei';
 import EditFurnitureModal from '../../components/Admin/EditFurnitureModal';
+import toast from 'react-hot-toast';
+import { confirmToast } from '../../utils/confirmToast';
 
 // Internal Model Thumbnail Component
 // Using React.memo to prevent re-renders unless modelUrl changes
