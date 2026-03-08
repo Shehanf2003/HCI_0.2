@@ -7,6 +7,7 @@ import { Center, Environment, useGLTF, Stage } from '@react-three/drei';
 import EditFurnitureModal from '../../components/Admin/EditFurnitureModal';
 import toast from 'react-hot-toast';
 import { confirmToast } from '../../utils/confirmToast';
+import HoverModelViewer from './HoverModelViewer';
 
 // Internal Model Thumbnail Component
 // Using React.memo to prevent re-renders unless modelUrl changes
@@ -114,18 +115,28 @@ const FurnitureCatalog = () => {
               className="border dark:border-gray-700 rounded p-3 bg-gray-50 dark:bg-gray-700 hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing flex items-center space-x-3"
             >
               {/* Image Preview or 3D Thumbnail */}
-                {item.imageUrl ? (
-                  <div className="w-16 h-16 bg-white dark:bg-gray-600 rounded flex items-center justify-center overflow-hidden flex-shrink-0 border dark:border-gray-500 relative">
-                     <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
-                  </div>
-                ) : item.modelUrl ? (
-                   <Suspense fallback={<div className="w-16 h-16 bg-gray-200 animate-pulse rounded"></div>}>
-                      <ModelThumbnail modelUrl={item.modelUrl} />
-                   </Suspense>
+                {item.modelUrl ? (
+                  <HoverModelViewer modelUrl={item.modelUrl}>
+                    <div className="w-16 h-16 bg-white dark:bg-gray-600 rounded flex items-center justify-center overflow-hidden flex-shrink-0 border dark:border-gray-500 relative cursor-pointer group hover:border-indigo-500 transition-colors">
+                      {item.imageUrl ? (
+                        <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <Suspense fallback={<div className="w-16 h-16 bg-gray-200 animate-pulse rounded"></div>}>
+                           <ModelThumbnail modelUrl={item.modelUrl} />
+                        </Suspense>
+                      )}
+                    </div>
+                  </HoverModelViewer>
                 ) : (
-                   <div className="w-16 h-16 bg-white dark:bg-gray-600 rounded flex items-center justify-center overflow-hidden flex-shrink-0 border dark:border-gray-500 relative">
-                      <span className="text-2xl">🪑</span>
-                   </div>
+                  item.imageUrl ? (
+                    <div className="w-16 h-16 bg-white dark:bg-gray-600 rounded flex items-center justify-center overflow-hidden flex-shrink-0 border dark:border-gray-500 relative">
+                       <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                     <div className="w-16 h-16 bg-white dark:bg-gray-600 rounded flex items-center justify-center overflow-hidden flex-shrink-0 border dark:border-gray-500 relative">
+                        <span className="text-2xl">🪑</span>
+                     </div>
+                  )
                 )}
 
               {/* Details */}

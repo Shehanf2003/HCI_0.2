@@ -10,11 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@radix-ui/react-hover-card": "^1.1.15",
     "@react-three/drei": "^9.122.0",
     "@react-three/fiber": "^8.15.11",
     "@use-gesture/react": "^10.3.1",
     "axios": "^1.6.2",
-    "framer-motion": "^12.34.3",
+    "framer-motion": "^12.35.1",
     "lucide-react": "^0.294.0",
     "playwright": "^1.58.2",
     "react": "^18.2.0",
