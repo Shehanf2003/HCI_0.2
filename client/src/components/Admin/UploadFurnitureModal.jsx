@@ -32,34 +32,50 @@ const UploadFurnitureModal = ({ onClose, onUploadSuccess }) => {
       return;
     }
 
-    const data = new FormData();
-    data.append('file', file);
-    Object.keys(formData).forEach((key) => {
-      data.append(key, formData[key]);
-    });
-
     setLoading(true);
     setError('');
 
     try {
-      // Get token from localStorage (assuming it's stored there)
+      // 1. Upload directly to Cloudinary from client
+      // Uses unsigned preset "ml_default" or create one in your Cloudinary console.
+      const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dxuivm21g'; // Default fallback, but it's best to configure it.
+      const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'ml_default';
+
+      const cloudData = new FormData();
+      cloudData.append('file', file);
+      cloudData.append('upload_preset', uploadPreset);
+      cloudData.append('resource_type', 'raw');
+
+      const cloudinaryResponse = await axios.post(
+        `https://api.cloudinary.com/v1_1/${cloudName}/upload`,
+        cloudData
+      );
+
+      const modelUrl = cloudinaryResponse.data.secure_url;
+
+      // 2. Post metadata and URL to backend
       const userInfo = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
       const token = userInfo?.token;
 
       const config = {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
       };
 
-      await axios.post('/api/furniture/upload', data, config);
+      const payload = {
+        ...formData,
+        modelUrl
+      };
+
+      await axios.post('/api/furniture/upload', payload, config);
       setLoading(false);
       onUploadSuccess();
       onClose();
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.message || 'Error uploading file');
+      setError(err.response?.data?.message || err.message || 'Error uploading file');
       setLoading(false);
     }
   };

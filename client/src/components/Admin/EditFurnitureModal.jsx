@@ -28,33 +28,51 @@ const EditFurnitureModal = ({ onClose, onEditSuccess, furnitureItem }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const data = new FormData();
-    if (file) {
-      data.append('file', file);
-    }
-    Object.keys(formData).forEach((key) => {
-      data.append(key, formData[key]);
-    });
-
     setLoading(true);
     setError('');
 
     try {
+      let modelUrl = null;
+      if (file) {
+        // Upload directly to Cloudinary from client
+        const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dxuivm21g';
+        const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'ml_default';
+
+        const cloudData = new FormData();
+        cloudData.append('file', file);
+        cloudData.append('upload_preset', uploadPreset);
+        cloudData.append('resource_type', 'raw');
+
+        const cloudinaryResponse = await axios.post(
+          `https://api.cloudinary.com/v1_1/${cloudName}/upload`,
+          cloudData
+        );
+        modelUrl = cloudinaryResponse.data.secure_url;
+      }
+
       const token = localStorage.getItem('token');
       const config = {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
       };
 
-      await axios.put(`/api/furniture/${furnitureItem._id}`, data, config);
+      const payload = {
+        ...formData
+      };
+
+      if (modelUrl) {
+        payload.modelUrl = modelUrl;
+      }
+
+      await axios.put(`/api/furniture/${furnitureItem._id}`, payload, config);
       setLoading(false);
       onEditSuccess();
       onClose();
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.message || 'Error updating item');
+      setError(err.response?.data?.message || err.message || 'Error updating item');
       setLoading(false);
     }
   };

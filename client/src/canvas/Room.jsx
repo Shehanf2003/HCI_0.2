@@ -31,7 +31,7 @@ const Room = () => {
     if (tex) {
       tex.wrapS = THREE.RepeatWrapping;
       tex.wrapT = THREE.RepeatWrapping;
-      tex.repeat.set(length / 2, width / 2);
+      tex.repeat.set(length, width);
     }
     return tex;
   }, [floorTexture, textures, urlsToLoad, length, width]);
@@ -43,7 +43,7 @@ const Room = () => {
       const clonedTex = tex.clone();
       clonedTex.wrapS = THREE.RepeatWrapping;
       clonedTex.wrapT = THREE.RepeatWrapping;
-      clonedTex.repeat.set(length / 2, height / 2);
+      clonedTex.repeat.set(length, height);
       clonedTex.needsUpdate = true;
       return clonedTex;
     }
@@ -57,7 +57,7 @@ const Room = () => {
       const clonedTex = tex.clone();
       clonedTex.wrapS = THREE.RepeatWrapping;
       clonedTex.wrapT = THREE.RepeatWrapping;
-      clonedTex.repeat.set(width / 2, height / 2);
+      clonedTex.repeat.set(width, height);
       clonedTex.needsUpdate = true;
       return clonedTex;
     }

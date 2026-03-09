@@ -48,12 +48,12 @@ const uploadToCloudinary = (fileBuffer, originalname) => {
   });
 };
 
-// @desc    Upload new furniture item
-// @route   POST /api/furniture/upload
+// @desc    Update new furniture item
+// @route   PUT /api/furniture/:id
 // @access  Private/Admin
 const updateFurniture = async (req, res) => {
   try {
-    const { name, type, width, height, depth, price, description, color, realWorldWidthMeters } = req.body;
+    const { name, type, width, height, depth, price, description, color, realWorldWidthMeters, modelUrl } = req.body;
 
     const furniture = await Furniture.findById(req.params.id);
 
@@ -77,7 +77,12 @@ const updateFurniture = async (req, res) => {
         furniture.realWorldWidthMeters = Number(realWorldWidthMeters);
       }
 
-      // If a new file is uploaded, update the modelUrl
+      // Allow frontend to pass the updated model URL
+      if (modelUrl) {
+        furniture.modelUrl = modelUrl;
+      }
+
+      // For backwards compatibility, but we shouldn't hit this
       if (req.file) {
         const result = await uploadToCloudinary(req.file.buffer, req.file.originalname);
         furniture.modelUrl = result.secure_url;
@@ -112,18 +117,22 @@ const deleteFurniture = async (req, res) => {
 
 const uploadFurniture = async (req, res) => {
   try {
-    const { name, type, width, height, depth, price, description, color, realWorldWidthMeters } = req.body;
-
-    // Check if file is uploaded
-    if (!req.file) {
-        return res.status(400).json({ message: 'Please upload a GLB file' });
-    }
+    const { name, type, width, height, depth, price, description, color, realWorldWidthMeters, modelUrl } = req.body;
 
     if (!realWorldWidthMeters || Number(realWorldWidthMeters) <= 0) {
         return res.status(400).json({ message: 'Please provide a valid realWorldWidthMeters (> 0)' });
     }
 
-    const result = await uploadToCloudinary(req.file.buffer, req.file.originalname);
+    let finalModelUrl = modelUrl;
+
+    if (!finalModelUrl) {
+      // For backwards compatibility, but shouldn't be hit with client-side upload
+      if (!req.file) {
+        return res.status(400).json({ message: 'Please provide a modelUrl or upload a GLB file' });
+      }
+      const result = await uploadToCloudinary(req.file.buffer, req.file.originalname);
+      finalModelUrl = result.secure_url;
+    }
 
     const furniture = new Furniture({
       name,
@@ -137,7 +146,7 @@ const uploadFurniture = async (req, res) => {
       description: description || '',
       defaultColor: color || '#ffffff',
       realWorldWidthMeters: Number(realWorldWidthMeters),
-      modelUrl: result.secure_url,
+      modelUrl: finalModelUrl,
       imageUrl: '', // Will use auto-generated thumbnail
     });
 
