@@ -48,8 +48,8 @@ const uploadToCloudinary = (fileBuffer, originalname) => {
   });
 };
 
-// @desc    Update new furniture item
-// @route   PUT /api/furniture/:id
+// @desc    Upload new furniture item
+// @route   POST /api/furniture/upload
 // @access  Private/Admin
 const updateFurniture = async (req, res) => {
   try {
@@ -77,12 +77,7 @@ const updateFurniture = async (req, res) => {
         furniture.realWorldWidthMeters = Number(realWorldWidthMeters);
       }
 
-      // Allow frontend to pass the updated model URL
-      if (modelUrl) {
-        furniture.modelUrl = modelUrl;
-      }
-
-      // For backwards compatibility, but we shouldn't hit this
+      // If a new file is uploaded, update the modelUrl
       if (req.file) {
         const result = await uploadToCloudinary(req.file.buffer, req.file.originalname);
         furniture.modelUrl = result.secure_url;
@@ -119,20 +114,16 @@ const uploadFurniture = async (req, res) => {
   try {
     const { name, type, width, height, depth, price, description, color, realWorldWidthMeters, modelUrl } = req.body;
 
+    // Check if file is uploaded
+    if (!modelUrl && !req.file) {
+        return res.status(400).json({ message: 'Please upload a GLB file' });
+    }
+
     if (!realWorldWidthMeters || Number(realWorldWidthMeters) <= 0) {
         return res.status(400).json({ message: 'Please provide a valid realWorldWidthMeters (> 0)' });
     }
 
-    let finalModelUrl = modelUrl;
-
-    if (!finalModelUrl) {
-      // For backwards compatibility, but shouldn't be hit with client-side upload
-      if (!req.file) {
-        return res.status(400).json({ message: 'Please provide a modelUrl or upload a GLB file' });
-      }
-      const result = await uploadToCloudinary(req.file.buffer, req.file.originalname);
-      finalModelUrl = result.secure_url;
-    }
+    const result = await uploadToCloudinary(req.file.buffer, req.file.originalname);
 
     const furniture = new Furniture({
       name,
@@ -146,7 +137,7 @@ const uploadFurniture = async (req, res) => {
       description: description || '',
       defaultColor: color || '#ffffff',
       realWorldWidthMeters: Number(realWorldWidthMeters),
-      modelUrl: finalModelUrl,
+      modelUrl: result.secure_url,
       imageUrl: '', // Will use auto-generated thumbnail
     });
 

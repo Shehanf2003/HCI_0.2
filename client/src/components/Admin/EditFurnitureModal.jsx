@@ -28,51 +28,50 @@ const EditFurnitureModal = ({ onClose, onEditSuccess, furnitureItem }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setLoading(true);
-    setError('');
 
-    try {
-      let modelUrl = null;
-      if (file) {
-        // Upload directly to Cloudinary from client
+    let modelUrl = furnitureItem.modelUrl;
+
+    if (file) {
         const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dxuivm21g';
         const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'ml_default';
 
-        const cloudData = new FormData();
-        cloudData.append('file', file);
-        cloudData.append('upload_preset', uploadPreset);
-        cloudData.append('resource_type', 'raw');
+        const clData = new FormData();
+        clData.append('file', file);
+        clData.append('upload_preset', uploadPreset);
 
-        const cloudinaryResponse = await axios.post(
-          `https://api.cloudinary.com/v1_1/${cloudName}/upload`,
-          cloudData
-        );
-        modelUrl = cloudinaryResponse.data.secure_url;
-      }
+        try {
+            const clRes = await axios.post(`https://api.cloudinary.com/v1_1/${cloudName}/raw/upload`, clData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            modelUrl = clRes.data.secure_url;
+        } catch (err) {
+            throw new Error('Cloudinary upload failed: ' + (err.response?.data?.error?.message || err.message));
+        }
+    }
 
-      const token = localStorage.getItem('token');
-      const config = {
+    const payload = {
+        ...formData,
+        modelUrl
+    };
+
+    const userInfo = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+    const token = userInfo?.token;
+
+    const config = {
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
         },
-      };
+    };
 
-      const payload = {
-        ...formData
-      };
+    await axios.put(`/api/furniture/${furnitureItem._id}`, payload, config);
 
-      if (modelUrl) {
-        payload.modelUrl = modelUrl;
-      }
-
-      await axios.put(`/api/furniture/${furnitureItem._id}`, payload, config);
       setLoading(false);
       onEditSuccess();
       onClose();
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.message || err.message || 'Error updating item');
+      setError(err.response?.data?.message || 'Error updating item');
       setLoading(false);
     }
   };

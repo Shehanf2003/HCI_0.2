@@ -24,15 +24,13 @@ const ModelViewer = ({ modelUrl }) => {
   );
 };
 
-const HoverModelViewer = React.forwardRef(({ children, modelUrl, ...props }, ref) => {
+const HoverModelViewer = ({ children, modelUrl }) => {
   const [open, setOpen] = React.useState(false);
 
   return (
     <HoverCard.Root open={open} onOpenChange={setOpen} openDelay={300} closeDelay={100}>
       <HoverCard.Trigger asChild>
-        <div ref={ref} className="inline-block cursor-pointer" {...props}>
-          {children}
-        </div>
+        {children}
       </HoverCard.Trigger>
 
       <AnimatePresence>
@@ -62,7 +60,6 @@ const HoverModelViewer = React.forwardRef(({ children, modelUrl, ...props }, ref
       </AnimatePresence>
     </HoverCard.Root>
   );
-});
+};
 
-HoverModelViewer.displayName = 'HoverModelViewer';
 export default HoverModelViewer;

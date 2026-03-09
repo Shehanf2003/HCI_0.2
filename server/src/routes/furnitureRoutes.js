@@ -13,7 +13,7 @@ router.post('/upload', protect, admin, uploadFurniture);
 // @route   PUT/DELETE /api/furniture/:id
 // @access  Private/Admin
 router.route('/:id')
-  .put(protect, admin, updateFurniture)
+  .put(protect, admin, upload.single('file'), updateFurniture)
   .delete(protect, admin, deleteFurniture);
 
 module.exports = router;
