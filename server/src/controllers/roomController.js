@@ -76,7 +76,9 @@ const updateRoomSpecs = async (req, res) => {
     room.shape = shape || room.shape;
     room.colorScheme = colorScheme || room.colorScheme;
 
-    const updatedRoom = await room.save();
+    await room.save();
+    // Re-fetch to populate furnitureItems.furnitureId
+    const updatedRoom = await Room.findById(room._id).populate('furnitureItems.furnitureId');
     res.json(updatedRoom);
   } else {
     res.status(404);
