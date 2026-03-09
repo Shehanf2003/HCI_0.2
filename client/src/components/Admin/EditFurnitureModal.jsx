@@ -29,6 +29,7 @@ const EditFurnitureModal = ({ onClose, onEditSuccess, furnitureItem }) => {
     e.preventDefault();
 
 
+
     let modelUrl = furnitureItem.modelUrl;
 
     if (file) {
@@ -40,7 +41,7 @@ const EditFurnitureModal = ({ onClose, onEditSuccess, furnitureItem }) => {
         clData.append('upload_preset', uploadPreset);
 
         try {
-            const clRes = await axios.post(`https://api.cloudinary.com/v1_1/${cloudName}/raw/upload`, clData, {
+            const clRes = await axios.post(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, clData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             modelUrl = clRes.data.secure_url;
@@ -65,6 +66,7 @@ const EditFurnitureModal = ({ onClose, onEditSuccess, furnitureItem }) => {
     };
 
     await axios.put(`/api/furniture/${furnitureItem._id}`, payload, config);
+
 
       setLoading(false);
       onEditSuccess();

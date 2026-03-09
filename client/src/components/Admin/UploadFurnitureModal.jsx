@@ -33,17 +33,17 @@ const UploadFurnitureModal = ({ onClose, onUploadSuccess }) => {
     }
 
 
+
     const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dxuivm21g';
     const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'ml_default';
 
     const clData = new FormData();
     clData.append('file', file);
     clData.append('upload_preset', uploadPreset);
-    clData.append('resource_type', 'raw');
 
     let modelUrl = '';
     try {
-        const clRes = await axios.post(`https://api.cloudinary.com/v1_1/${cloudName}/raw/upload`, clData, {
+        const clRes = await axios.post(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, clData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         });
         modelUrl = clRes.data.secure_url;
@@ -67,6 +67,7 @@ const UploadFurnitureModal = ({ onClose, onUploadSuccess }) => {
     };
 
     await axios.post('/api/furniture/upload', payload, config);
+
 
       setLoading(false);
       onUploadSuccess();
