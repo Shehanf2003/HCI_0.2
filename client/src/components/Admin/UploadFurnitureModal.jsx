@@ -38,8 +38,8 @@ const UploadFurnitureModal = ({ onClose, onUploadSuccess }) => {
     try {
       // 1. Upload directly to Cloudinary from client
       // Uses unsigned preset "ml_default" or create one in your Cloudinary console.
-      const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dxuivm21g'; // Default fallback, but it's best to configure it.
-      const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'ml_default';
+      const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dl1bokcc8'; // Default fallback, but it's best to configure it.
+      const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'furniture_GLB';
 
       const cloudData = new FormData();
       cloudData.append('file', file);
@@ -47,7 +47,7 @@ const UploadFurnitureModal = ({ onClose, onUploadSuccess }) => {
       cloudData.append('resource_type', 'raw');
 
       const cloudinaryResponse = await axios.post(
-        `https://api.cloudinary.com/v1_1/${cloudName}/upload`,
+        `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
         cloudData
       );
 

@@ -55,6 +55,9 @@ const createRoom = async (req, res) => {
 // @desc    Update room specs (size/color/shape)
 // @route   PUT /api/rooms/:id
 // @access  Private
+// @desc    Update room specs (size/color/shape)
+// @route   PUT /api/rooms/:id
+// @access  Private
 const updateRoomSpecs = async (req, res) => {
   const { name, dimensions, shape, colorScheme } = req.body;
 
@@ -74,9 +77,17 @@ const updateRoomSpecs = async (req, res) => {
     room.name = name || room.name;
     room.dimensions = dimensions || room.dimensions;
     room.shape = shape || room.shape;
-    room.colorScheme = colorScheme || room.colorScheme;
+    
+    // 👇 THE FIX: Merge the object safely so Mongoose detects the change
+    if (colorScheme) {
+        // Object.assign safely copies the new properties over
+        Object.assign(room.colorScheme, colorScheme);
+        // Explicitly tell Mongoose that this nested object was modified
+        room.markModified('colorScheme');
+    }
 
     await room.save();
+    
     // Re-fetch to populate furnitureItems.furnitureId
     const updatedRoom = await Room.findById(room._id).populate('furnitureItems.furnitureId');
     res.json(updatedRoom);
@@ -85,7 +96,6 @@ const updateRoomSpecs = async (req, res) => {
     throw new Error('Room not found');
   }
 };
-
 // @desc    Delete a room
 // @route   DELETE /api/rooms/:id
 // @access  Private

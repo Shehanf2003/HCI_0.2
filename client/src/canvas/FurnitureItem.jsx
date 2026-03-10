@@ -115,10 +115,9 @@ const RotationHandle = ({ onRotate, isSelected }) => {
 
 const FurnitureItem = ({ item, isSelected, onSelect }) => {
   const meshRef = useRef();
-  const { camera, scene, size: viewportSize, gl, controls } = useThree();
+  const { camera, scene, controls } = useThree();
   const { updateFurniture, room, isPaintMode, activePaintColor } = useDesign();
 
-  // Local state for interactive movements
   const [position, setPosition] = useState([item.position.x, item.position.y, item.position.z]);
   const [rotation, setRotation] = useState([item.rotation.x, item.rotation.y, item.rotation.z]);
   const [hovered, setHovered] = useState(false);
@@ -129,7 +128,6 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
       document.body.style.cursor = 'crosshair';
       return;
     }
-
     if (isDragging.current) {
       document.body.style.cursor = 'grabbing';
     } else if (hovered && isSelected) {
@@ -137,13 +135,9 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
     } else {
       document.body.style.cursor = 'auto';
     }
+    return () => { document.body.style.cursor = 'auto'; };
+  }, [hovered, isPaintMode, isSelected]);
 
-    return () => {
-      document.body.style.cursor = 'auto';
-    };
-  }, [hovered, isDragging.current, isPaintMode, isSelected]);
-
-  // Sync if item changes from outside
   useEffect(() => {
     if (!isDragging.current) {
         setPosition([item.position.x, item.position.y, item.position.z]);
@@ -155,55 +149,41 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
   const modelUrl = item.furnitureId?.modelUrl;
   const realWorldWidthMeters = item.furnitureId?.realWorldWidthMeters || 1;
 
-  const roundToDecimals = (val, decimals = 3) => {
-    return Number(Math.round(val + 'e' + decimals) + 'e-' + decimals);
-  };
+  const roundToDecimals = (val, decimals = 3) => Number(Math.round(val + 'e' + decimals) + 'e-' + decimals);
 
+  // OPTIMIZED: Collision Detection
   const getIntersectingBox = (prospectiveBox) => {
-    // Check against room walls first
-    // In Room.jsx, dimensions are length(x), width(z), height(y). Floor is at y=0.
-    // The room boundaries on X axis are from -length/2 to length/2.
-    // The room boundaries on Z axis are from -width/2 to width/2.
     if (room && room.dimensions) {
       const { length, width } = room.dimensions;
-      const minX = -length / 2;
-      const maxX = length / 2;
-      const minZ = -width / 2;
-      const maxZ = width / 2;
-
-      // If any part of the prospectiveBox is outside the room, it's a collision
       if (
-        prospectiveBox.min.x < minX ||
-        prospectiveBox.max.x > maxX ||
-        prospectiveBox.min.z < minZ ||
-        prospectiveBox.max.z > maxZ
+        prospectiveBox.min.x < -length / 2 ||
+        prospectiveBox.max.x > length / 2 ||
+        prospectiveBox.min.z < -width / 2 ||
+        prospectiveBox.max.z > width / 2
       ) {
         return true;
       }
     }
 
-    // Iterate through all other items in the scene to check for collision
-    // We assume other furniture items are in the same parent group and have userData.isFurniture = true
     let collision = false;
-
-    // Scale down the prospective box slightly to allow objects to get closer
-    const scaleFactor = 0.5; // 50% reduction in bounding box for collision detection
+    const scaleFactor = 0.5; 
+    
+    // Scale prospective box
     const prospectiveCenter = new Vector3();
     const prospectiveSize = new Vector3();
     prospectiveBox.getCenter(prospectiveCenter);
     prospectiveBox.getSize(prospectiveSize);
-
     const scaledProspectiveBox = new Box3().setFromCenterAndSize(
       prospectiveCenter,
       prospectiveSize.multiplyScalar(scaleFactor)
     );
 
     scene.traverse((child) => {
-      // Check if it's a furniture group and NOT the current dragging item
+      // Small optimization: stop traversing if collision is already found
+      if (collision) return; 
+      
       if (child.userData && child.userData.isFurniture && child.userData.id !== item._id) {
         const otherBox = new Box3().setFromObject(child);
-
-        // Scale down the other box similarly
         const otherCenter = new Vector3();
         const otherSize = new Vector3();
         otherBox.getCenter(otherCenter);
@@ -222,15 +202,13 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
     return collision;
   };
 
-  // We memoize plane and raycaster so they aren't recreated on every render
   const plane = useMemo(() => new Plane(new Vector3(0, 1, 0), 0), []);
   const raycaster = useMemo(() => new Raycaster(), []);
   const dragOffset = useRef(new Vector3());
 
   const bindDrag = useDrag(({ event, active, first, last, xy: [clientX, clientY] }) => {
-    if (!isSelected || isPaintMode) return; // Do not allow dragging if in Paint Mode
+    if (!isSelected || isPaintMode) return;
 
-    // Disable orbit controls while dragging
     if (controls) controls.enabled = !active;
 
     if (active) {
@@ -250,22 +228,18 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
       raycaster.ray.intersectPlane(plane, intersectPoint);
 
       if (first) {
-        // Calculate offset between click point and object center to drag exactly from clicked spot
         dragOffset.current.copy(intersectPoint).sub(meshRef.current.position);
       }
 
       const newPos = intersectPoint.clone().sub(dragOffset.current);
 
-      // --- Collision Detection ---
-      // We need to build a prospective Box3
-      const prospectiveMesh = meshRef.current.clone();
-      prospectiveMesh.position.copy(newPos);
-      prospectiveMesh.updateMatrixWorld(true);
-      const prospectiveBox = new Box3().setFromObject(prospectiveMesh);
+      // OPTIMIZED: Fast math-based bounding box translation
+      const prospectiveBox = new Box3().setFromObject(meshRef.current);
+      const delta = newPos.clone().sub(meshRef.current.position);
+      prospectiveBox.translate(delta); // Shifts the box without cloning the mesh!
 
       if (!getIntersectingBox(prospectiveBox)) {
-        // No collision, apply new position locally for real-time rendering
-        setPosition([newPos.x, item.position.y, newPos.z]); // Keep original Y
+        setPosition([newPos.x, item.position.y, newPos.z]); 
         if (meshRef.current) {
           meshRef.current.position.set(newPos.x, item.position.y, newPos.z);
         }
@@ -274,25 +248,24 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
 
     if (last) {
       isDragging.current = false;
-      if (hovered) {
-        document.body.style.cursor = 'grab';
-      } else {
-        document.body.style.cursor = 'auto';
-      }
-      const newPos = {
-        x: roundToDecimals(meshRef.current.position.x),
-        y: roundToDecimals(item.position.y),
-        z: roundToDecimals(meshRef.current.position.z),
-      };
-
+      document.body.style.cursor = hovered ? 'grab' : 'auto';
+      
       updateFurniture(room._id, item._id, {
-        position: newPos,
-        rotation: { x: rotation[0], y: rotation[1], z: rotation[2] },
+        position: {
+          x: roundToDecimals(meshRef.current.position.x),
+          y: roundToDecimals(item.position.y),
+          z: roundToDecimals(meshRef.current.position.z),
+        },
+        // It is safer to read rotation from the mesh directly on drop
+        rotation: { 
+            x: roundToDecimals(meshRef.current.rotation.x), 
+            y: roundToDecimals(meshRef.current.rotation.y), 
+            z: roundToDecimals(meshRef.current.rotation.z) 
+        },
         scale: item.scale,
       });
     }
   }, { pointerEvents: true });
-
   const bindRotate = useDrag(({ event, active, last, xy: [clientX, clientY] }) => {
     if (!isSelected || isPaintMode) return; // Do not allow rotating if in Paint Mode
 

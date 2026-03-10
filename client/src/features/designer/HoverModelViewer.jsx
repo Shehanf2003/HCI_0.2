@@ -1,31 +1,33 @@
-import React, { Suspense, useMemo } from 'react';
+import React, { Suspense, useMemo, useEffect } from 'react';
 import * as HoverCard from '@radix-ui/react-hover-card';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Canvas } from '@react-three/fiber';
 import { useGLTF, Stage, OrbitControls } from '@react-three/drei';
 
-const ModelViewer = ({ modelUrl }) => {
+// 1. The 3D Scene is safely isolated inside its own component
+const ModelScene = ({ modelUrl }) => {
   const { scene } = useGLTF(modelUrl);
   const clonedScene = useMemo(() => scene.clone(), [scene]);
 
   return (
-    <Canvas
-      gl={{ preserveDrawingBuffer: true, alpha: true }}
-      shadows={false}
-      camera={{ position: [0, 0, 4], fov: 50 }}
-    >
-      <Suspense fallback={null}>
-        <Stage environment="city" intensity={0.5} adjustCamera={true}>
-          <primitive object={clonedScene} />
-        </Stage>
-        <OrbitControls autoRotate autoRotateSpeed={2} enableZoom={true} makeDefault />
-      </Suspense>
-    </Canvas>
+    <>
+      <Stage environment="city" intensity={0.5} adjustCamera={true}>
+        <primitive object={clonedScene} />
+      </Stage>
+      <OrbitControls autoRotate autoRotateSpeed={2} enableZoom={true} />
+    </>
   );
 };
 
 const HoverModelViewer = React.forwardRef(({ children, modelUrl, ...props }, ref) => {
   const [open, setOpen] = React.useState(false);
+
+  // Preload prevents the application from stuttering when the pop-up opens
+  useEffect(() => {
+    if (modelUrl) {
+      useGLTF.preload(modelUrl);
+    }
+  }, [modelUrl]);
 
   return (
     <HoverCard.Root open={open} onOpenChange={setOpen} openDelay={300} closeDelay={100}>
@@ -37,6 +39,7 @@ const HoverModelViewer = React.forwardRef(({ children, modelUrl, ...props }, ref
 
       <AnimatePresence>
         {open && modelUrl && (
+          // Radix Portal is fine to use again since this Canvas is self-contained
           <HoverCard.Portal forceMount>
             <HoverCard.Content
               side="right"
@@ -50,10 +53,19 @@ const HoverModelViewer = React.forwardRef(({ children, modelUrl, ...props }, ref
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.2 }}
-                className="bg-white/10 dark:bg-black/30 backdrop-blur-md rounded-lg border border-white/20 dark:border-gray-600 shadow-2xl overflow-hidden w-full h-full relative"
+                className="bg-[#1a202c]/90 backdrop-blur-md rounded-lg border border-gray-700 shadow-2xl overflow-hidden relative"
               >
                 <div className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing">
-                  <ModelViewer modelUrl={modelUrl} />
+                  {/* The self-contained Canvas perfectly bounds to the popup */}
+                  <Canvas
+                    gl={{ preserveDrawingBuffer: true, alpha: true }}
+                    shadows={false}
+                    camera={{ position: [0, 0, 4], fov: 50 }}
+                  >
+                    <Suspense fallback={null}>
+                      <ModelScene modelUrl={modelUrl} />
+                    </Suspense>
+                  </Canvas>
                 </div>
               </motion.div>
             </HoverCard.Content>
