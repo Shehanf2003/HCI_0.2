@@ -1,7 +1,7 @@
-import React, { useState, useRef, useMemo, useEffect, useLayoutEffect, Suspense } from 'react';
+import React, { useState, useRef, useMemo, useEffect, Suspense } from 'react';
 import { useThree } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
-import { Box3, Vector3, Plane, Raycaster, Matrix4, Color } from 'three';
+import { Box3, Vector3, Plane, Raycaster } from 'three';
 import { useDrag } from '@use-gesture/react';
 import { useDesign } from '../context/DesignContext';
 
@@ -23,87 +23,92 @@ class ModelErrorBoundary extends React.Component {
   }
 }
 
+// --------------------------------------------------------
+// 1. GLTFModel Component (Handles the 3D mesh, colors, and centering)
+// --------------------------------------------------------
 const GLTFModel = ({ url, customColors, realWorldWidthMeters, onMeshClick }) => {
   const { scene } = useGLTF(url);
 
-  // Deep clone the scene and its materials so each instance can have distinct colors
+  // Deep clone scene and materials ONCE
   const clonedScene = useMemo(() => {
     const clone = scene.clone();
     clone.traverse((child) => {
-      if (child.isMesh) {
-        if (child.material) {
-          child.material = child.material.clone();
+      if (child.isMesh && child.material) {
+        child.material = child.material.clone();
+        
+        // Base visual adjustments
+        child.castShadow = true;
+        child.receiveShadow = false; // Prevents harsh artifacts
+        
+        // Enhance fabrics
+        if (child.material.isMeshStandardMaterial) {
+          child.material.roughness = 0.8;
+          child.material.metalness = 0.05;
         }
       }
     });
     return clone;
   }, [scene]);
 
-  useEffect(() => {
-    clonedScene.traverse((child) => {
-      if (child.isMesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
-
-        // If there's a custom color for this mesh, apply it.
-        // Convert to a Three.js Color object to use ColorManagement automatically.
-        if (customColors && customColors[child.name] && child.material) {
-          child.material.color = new Color(customColors[child.name]);
-        }
-      }
-    });
-  }, [clonedScene, customColors]);
-
-  useLayoutEffect(() => {
-    if (!clonedScene || !realWorldWidthMeters) return;
-
-    // Reset transforms to calculate base bounding box
-    clonedScene.scale.set(1, 1, 1);
-    clonedScene.position.set(0, 0, 0);
-    clonedScene.rotation.set(0, 0, 0);
-
-    const box = new Box3().setFromObject(clonedScene);
+  // Calculate bounding box and required transforms ONCE declaratively
+  const transform = useMemo(() => {
+    const box = new Box3().setFromObject(scene);
     const size = new Vector3();
     box.getSize(size);
     const center = new Vector3();
     box.getCenter(center);
 
-    if (size.lengthSq() === 0) return;
+    if (size.lengthSq() === 0) return { scale: [1, 1, 1], position: [0, 0, 0] };
 
-    // Apply scale so the raw bounding box width matches realWorldWidthMeters
     const scaleFactor = realWorldWidthMeters / size.x;
+    
+    return {
+      scale: [scaleFactor, scaleFactor, scaleFactor],
+      position: [
+        -center.x * scaleFactor,
+        -box.min.y * scaleFactor, // Align the very bottom of the model to Y=0
+        -center.z * scaleFactor
+      ]
+    };
+  }, [scene, realWorldWidthMeters]);
 
-    clonedScene.scale.set(scaleFactor, scaleFactor, scaleFactor);
-
-    // Center the model: align bottom-center of the model to (0,0,0) of the group
-    clonedScene.position.x = -center.x * scaleFactor;
-    clonedScene.position.z = -center.z * scaleFactor;
-    clonedScene.position.y = -box.min.y * scaleFactor;
-
-  }, [clonedScene, realWorldWidthMeters]);
+  // Apply colors correctly using Three.js standard methods
+  useEffect(() => {
+    if (!customColors) return;
+    
+    clonedScene.traverse((child) => {
+      if (child.isMesh && child.material && customColors[child.name]) {
+        child.material.color.set(customColors[child.name]);
+        child.material.needsUpdate = true; 
+      }
+    });
+  }, [clonedScene, customColors]);
 
   return (
-    <primitive
-      object={clonedScene}
-      onClick={(e) => {
-        if (!e.intersections || e.intersections.length === 0) return;
-        // Find the first intersected mesh
-        const intersection = e.intersections.find(i => i.object && i.object.isMesh);
-        if (intersection) {
-          onMeshClick(e, intersection.object.name);
-        }
-      }}
-    />
+    <group position={transform.position} scale={transform.scale}>
+      <primitive
+        object={clonedScene}
+        onClick={(e) => {
+          if (!e.intersections || e.intersections.length === 0) return;
+          const intersection = e.intersections.find(i => i.object && i.object.isMesh);
+          if (intersection) {
+            onMeshClick(e, intersection.object.name);
+          }
+        }}
+      />
+    </group>
   );
 };
 
-// Rotation Handle Component
+// --------------------------------------------------------
+// 2. Rotation Handle Component
+// --------------------------------------------------------
 const RotationHandle = ({ onRotate, isSelected }) => {
   if (!isSelected) return null;
 
   return (
     <mesh
-      position={[0, 0.5, 1.5]} // Positioned slightly outside and above the base
+      position={[0, 0.5, 1.5]}
       {...onRotate()}
       visible={isSelected}
     >
@@ -113,8 +118,12 @@ const RotationHandle = ({ onRotate, isSelected }) => {
   );
 };
 
+// --------------------------------------------------------
+// 3. Main FurnitureItem Component (Handles dragging, rotation, and selection)
+// --------------------------------------------------------
 const FurnitureItem = ({ item, isSelected, onSelect }) => {
   const meshRef = useRef();
+  const modelRef = useRef();
   const { camera, scene, controls } = useThree();
   const { updateFurniture, room, isPaintMode, activePaintColor } = useDesign();
 
@@ -151,7 +160,10 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
 
   const roundToDecimals = (val, decimals = 3) => Number(Math.round(val + 'e' + decimals) + 'e-' + decimals);
 
-  // OPTIMIZED: Collision Detection
+  const plane = useMemo(() => new Plane(new Vector3(0, 1, 0), 0), []);
+  const raycaster = useMemo(() => new Raycaster(), []);
+  const dragOffset = useRef(new Vector3());
+
   const getIntersectingBox = (prospectiveBox) => {
     if (room && room.dimensions) {
       const { length, width } = room.dimensions;
@@ -166,9 +178,8 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
     }
 
     let collision = false;
-    const scaleFactor = 0.5; 
+    const scaleFactor = 0.95; 
     
-    // Scale prospective box
     const prospectiveCenter = new Vector3();
     const prospectiveSize = new Vector3();
     prospectiveBox.getCenter(prospectiveCenter);
@@ -179,10 +190,9 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
     );
 
     scene.traverse((child) => {
-      // Small optimization: stop traversing if collision is already found
       if (collision) return; 
       
-      if (child.userData && child.userData.isFurniture && child.userData.id !== item._id) {
+      if (child.userData && child.userData.isFurnitureModel && child.userData.id !== item._id) {
         const otherBox = new Box3().setFromObject(child);
         const otherCenter = new Vector3();
         const otherSize = new Vector3();
@@ -202,13 +212,8 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
     return collision;
   };
 
-  const plane = useMemo(() => new Plane(new Vector3(0, 1, 0), 0), []);
-  const raycaster = useMemo(() => new Raycaster(), []);
-  const dragOffset = useRef(new Vector3());
-
   const bindDrag = useDrag(({ event, active, first, last, xy: [clientX, clientY] }) => {
     if (!isSelected || isPaintMode) return;
-
     if (controls) controls.enabled = !active;
 
     if (active) {
@@ -232,11 +237,9 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
       }
 
       const newPos = intersectPoint.clone().sub(dragOffset.current);
-
-      // OPTIMIZED: Fast math-based bounding box translation
-      const prospectiveBox = new Box3().setFromObject(meshRef.current);
+      const prospectiveBox = new Box3().setFromObject(modelRef.current); 
       const delta = newPos.clone().sub(meshRef.current.position);
-      prospectiveBox.translate(delta); // Shifts the box without cloning the mesh!
+      prospectiveBox.translate(delta); 
 
       if (!getIntersectingBox(prospectiveBox)) {
         setPosition([newPos.x, item.position.y, newPos.z]); 
@@ -256,7 +259,6 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
           y: roundToDecimals(item.position.y),
           z: roundToDecimals(meshRef.current.position.z),
         },
-        // It is safer to read rotation from the mesh directly on drop
         rotation: { 
             x: roundToDecimals(meshRef.current.rotation.x), 
             y: roundToDecimals(meshRef.current.rotation.y), 
@@ -266,10 +268,9 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
       });
     }
   }, { pointerEvents: true });
-  const bindRotate = useDrag(({ event, active, last, xy: [clientX, clientY] }) => {
-    if (!isSelected || isPaintMode) return; // Do not allow rotating if in Paint Mode
 
-    // Disable orbit controls while dragging
+  const bindRotate = useDrag(({ event, active, last, xy: [clientX, clientY] }) => {
+    if (!isSelected || isPaintMode) return;
     if (controls) controls.enabled = !active;
 
     if (active) {
@@ -288,13 +289,11 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
         const intersectPoint = new Vector3();
         raycaster.ray.intersectPlane(plane, intersectPoint);
 
-        // Calculate angle between the object's center and the mouse intersection point
         const objectPos = meshRef.current.position;
         const dx = intersectPoint.x - objectPos.x;
         const dz = intersectPoint.z - objectPos.z;
-        const angle = Math.atan2(dx, dz); // Using dx, dz for Y-axis rotation
+        const angle = Math.atan2(dx, dz);
 
-        // Update local state for real-time visual
         setRotation([rotation[0], angle, rotation[2]]);
         if (meshRef.current) {
            meshRef.current.rotation.y = angle;
@@ -303,11 +302,8 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
 
     if (last) {
         isDragging.current = false;
-        if (hovered) {
-            document.body.style.cursor = 'grab';
-        } else {
-            document.body.style.cursor = 'auto';
-        }
+        document.body.style.cursor = hovered ? 'grab' : 'auto';
+        
         const newRot = {
             x: roundToDecimals(rotation[0]),
             y: roundToDecimals(meshRef.current.rotation.y),
@@ -356,31 +352,31 @@ const FurnitureItem = ({ item, isSelected, onSelect }) => {
         </mesh>
       )}
 
-      {/* The rotation handle is a child of the group so it rotates with the object,
-          but we apply a separate useDrag to it. */}
       <RotationHandle onRotate={bindRotate} isSelected={isSelected} />
 
-      {modelUrl ? (
-        <ModelErrorBoundary fallback={FallbackMesh}>
-           <Suspense fallback={FallbackMesh}>
-              <GLTFModel
-                url={modelUrl}
-                customColors={item.customColors ? (typeof item.customColors.get === 'function' ? Object.fromEntries(item.customColors) : item.customColors) : {}}
-                realWorldWidthMeters={realWorldWidthMeters}
-                onMeshClick={(e, meshName) => {
-                  if (isSelected && isPaintMode) {
-                    e.stopPropagation(); // Prevent re-selection drag conflicts
-                    const currentCustomColors = item.customColors ? (typeof item.customColors.get === 'function' ? Object.fromEntries(item.customColors) : item.customColors) : {};
-                    const newCustomColors = { ...currentCustomColors, [meshName]: activePaintColor };
-                    updateFurniture(room._id, item._id, {
-                      customColors: newCustomColors
-                    });
-                  }
-                }}
-              />
-           </Suspense>
-        </ModelErrorBoundary>
-      ) : FallbackMesh}
+      <group ref={modelRef} userData={{ isFurnitureModel: true, id: item._id }}>
+        {modelUrl ? (
+          <ModelErrorBoundary fallback={FallbackMesh}>
+             <Suspense fallback={FallbackMesh}>
+                <GLTFModel
+                  url={modelUrl}
+                  customColors={item.customColors ? (typeof item.customColors.get === 'function' ? Object.fromEntries(item.customColors) : item.customColors) : {}}
+                  realWorldWidthMeters={realWorldWidthMeters}
+                  onMeshClick={(e, meshName) => {
+                    if (isSelected && isPaintMode) {
+                      e.stopPropagation();
+                      const currentCustomColors = item.customColors ? (typeof item.customColors.get === 'function' ? Object.fromEntries(item.customColors) : item.customColors) : {};
+                      const newCustomColors = { ...currentCustomColors, [meshName]: activePaintColor };
+                      updateFurniture(room._id, item._id, {
+                        customColors: newCustomColors
+                      });
+                    }
+                  }}
+                />
+             </Suspense>
+          </ModelErrorBoundary>
+        ) : FallbackMesh}
+      </group>
     </group>
   );
 };
