@@ -1,22 +1,17 @@
 const Room = require('../models/Room');
 const { calculateArea, calculateVolume, isValidRoom } = require('../services/roomService');
 
-// @desc    Get all rooms for a user
-// @route   GET /api/rooms
-// @access  Private
 const getRooms = async (req, res) => {
   const rooms = await Room.find({ user: req.user._id });
   res.json(rooms);
 };
 
-// @desc    Get room by ID
-// @route   GET /api/rooms/:id
-// @access  Private
+
 const getRoomById = async (req, res) => {
   const room = await Room.findById(req.params.id);
 
   if (room) {
-    // Check if user owns the room
+   
     if (room.user.toString() !== req.user._id.toString()) {
       res.status(401);
       throw new Error('Not authorized to access this room');
@@ -28,9 +23,6 @@ const getRoomById = async (req, res) => {
   }
 };
 
-// @desc    Create a new room (initial specs)
-// @route   POST /api/rooms
-// @access  Private
 const createRoom = async (req, res) => {
   const { name, dimensions, shape, colorScheme } = req.body;
 
@@ -45,19 +37,14 @@ const createRoom = async (req, res) => {
     dimensions,
     shape,
     colorScheme,
-    furnitureItems: [], // Start empty
+    furnitureItems: [],
   });
 
   const createdRoom = await room.save();
   res.status(201).json(createdRoom);
 };
 
-// @desc    Update room specs (size/color/shape)
-// @route   PUT /api/rooms/:id
-// @access  Private
-// @desc    Update room specs (size/color/shape)
-// @route   PUT /api/rooms/:id
-// @access  Private
+
 const updateRoomSpecs = async (req, res) => {
   const { name, dimensions, shape, colorScheme } = req.body;
 
@@ -78,17 +65,13 @@ const updateRoomSpecs = async (req, res) => {
     room.dimensions = dimensions || room.dimensions;
     room.shape = shape || room.shape;
     
-    // 👇 THE FIX: Merge the object safely so Mongoose detects the change
     if (colorScheme) {
-        // Object.assign safely copies the new properties over
         Object.assign(room.colorScheme, colorScheme);
-        // Explicitly tell Mongoose that this nested object was modified
         room.markModified('colorScheme');
     }
 
     await room.save();
     
-    // Re-fetch to populate furnitureItems.furnitureId
     const updatedRoom = await Room.findById(room._id).populate('furnitureItems.furnitureId');
     res.json(updatedRoom);
   } else {
@@ -96,9 +79,7 @@ const updateRoomSpecs = async (req, res) => {
     throw new Error('Room not found');
   }
 };
-// @desc    Delete a room
-// @route   DELETE /api/rooms/:id
-// @access  Private
+
 const deleteRoom = async (req, res) => {
   const room = await Room.findById(req.params.id);
 

@@ -13,7 +13,6 @@ const AuthPanel = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Reset state when opening/closing
   useEffect(() => {
     if (!isOpen) {
       setError('');
@@ -41,7 +40,7 @@ const AuthPanel = ({ isOpen, onClose }) => {
         localStorage.setItem('user', JSON.stringify(data));
         navigate('/dashboard');
       }
-      onClose(); // close panel on success
+      onClose(); 
     } catch (err) {
       setError(err.response?.data?.message || (isLogin ? 'Login failed' : 'Registration failed'));
     } finally {
@@ -51,13 +50,12 @@ const AuthPanel = ({ isOpen, onClose }) => {
 
   return (
     <>
-      {/* Backdrop overlay */}
+      
       <div
         className={`fixed inset-0 z-40 bg-black transition-opacity duration-300 ${isOpen ? 'opacity-50 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
         onClick={onClose}
       />
 
-      {/* Sliding Panel */}
       <div className={`fixed top-0 right-0 h-full w-full max-w-sm bg-white/60 dark:bg-black/40 backdrop-blur-lg border-l border-white/20 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'} flex flex-col`}>
         <div className="flex justify-between items-center p-6 border-b border-black/10 dark:border-white/10">
           <h2 className="text-2xl font-bold dark:text-white">

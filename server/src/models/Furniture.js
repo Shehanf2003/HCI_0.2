@@ -8,7 +8,7 @@ const furnitureSchema = mongoose.Schema(
     },
     type: {
       type: String,
-      required: true, // e.g., 'chair', 'table', 'sofa'
+      required: true, 
     },
     dimensions: {
       width: { type: Number, required: true },
@@ -33,10 +33,10 @@ const furnitureSchema = mongoose.Schema(
       min: [0.01, 'realWorldWidthMeters must be greater than 0'],
     },
     imageUrl: {
-      type: String, // Optional, for UI preview
+      type: String, 
     },
     modelUrl: {
-      type: String, // Path to .glb/.gltf file
+      type: String, 
     }
   },
   {

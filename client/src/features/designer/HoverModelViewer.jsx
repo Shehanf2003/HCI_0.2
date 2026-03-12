@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Canvas } from '@react-three/fiber';
 import { useGLTF, Stage, OrbitControls } from '@react-three/drei';
 
-// 1. The 3D Scene is safely isolated inside its own component
+
 const ModelScene = ({ modelUrl }) => {
   const { scene } = useGLTF(modelUrl);
   const clonedScene = useMemo(() => scene.clone(), [scene]);
@@ -22,7 +22,6 @@ const ModelScene = ({ modelUrl }) => {
 const HoverModelViewer = React.forwardRef(({ children, modelUrl, ...props }, ref) => {
   const [open, setOpen] = React.useState(false);
 
-  // Preload prevents the application from stuttering when the pop-up opens
   useEffect(() => {
     if (modelUrl) {
       useGLTF.preload(modelUrl);
@@ -39,7 +38,7 @@ const HoverModelViewer = React.forwardRef(({ children, modelUrl, ...props }, ref
 
       <AnimatePresence>
         {open && modelUrl && (
-          // Radix Portal is fine to use again since this Canvas is self-contained
+         
           <HoverCard.Portal forceMount>
             <HoverCard.Content
               side="right"
@@ -56,7 +55,7 @@ const HoverModelViewer = React.forwardRef(({ children, modelUrl, ...props }, ref
                 className="bg-[#1a202c]/90 backdrop-blur-md rounded-lg border border-gray-700 shadow-2xl overflow-hidden relative"
               >
                 <div className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing">
-                  {/* The self-contained Canvas perfectly bounds to the popup */}
+                 
                   <Canvas
                     gl={{ preserveDrawingBuffer: true, alpha: true }}
                     shadows={false}

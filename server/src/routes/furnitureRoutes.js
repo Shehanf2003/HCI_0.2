@@ -4,14 +4,8 @@ const { upload, uploadFurniture, updateFurniture, deleteFurniture } = require('.
 
 const router = express.Router();
 
-// @desc    Upload new furniture item
-// @route   POST /api/furniture/upload
-// @access  Private/Admin
 router.post('/upload', protect, admin, uploadFurniture);
 
-// @desc    Update/Delete furniture item
-// @route   PUT/DELETE /api/furniture/:id
-// @access  Private/Admin
 router.route('/:id')
   .put(protect, admin, updateFurniture)
   .delete(protect, admin, deleteFurniture);

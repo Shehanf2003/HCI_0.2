@@ -34,7 +34,6 @@ const EditFurnitureModal = ({ onClose, onEditSuccess, furnitureItem }) => {
     try {
       let modelUrl = null;
       if (file) {
-        // Upload directly to Cloudinary from client
         const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dxuivm21g';
         const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'ml_default';
 

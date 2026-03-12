@@ -21,7 +21,6 @@ const CheckoutModal = ({ isOpen, onClose, cartItems, totalAmount }) => {
     e.preventDefault();
     setIsProcessing(true);
 
-    // Simulate payment processing
     setTimeout(() => {
       setIsProcessing(false);
       toast.success('Payment successful! Your furniture order has been placed.');

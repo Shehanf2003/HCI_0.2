@@ -9,21 +9,19 @@ import toast from 'react-hot-toast';
 import { confirmToast } from '../../utils/confirmToast';
 import HoverModelViewer from './HoverModelViewer';
 
-// Internal Model Thumbnail Component
-// Using React.memo to prevent re-renders unless modelUrl changes
 const ModelThumbnail = React.memo(({ modelUrl }) => {
   const { scene } = useGLTF(modelUrl);
-  // Clone to avoid shared state issues
+
   const clonedScene = useMemo(() => scene.clone(), [scene]);
 
   return (
     <div className="w-16 h-16 bg-white dark:bg-gray-600 rounded flex items-center justify-center overflow-hidden flex-shrink-0 border dark:border-gray-500 relative">
         <Canvas
-            frameloop="demand" // Only render when necessary
+            frameloop="demand" 
             gl={{ preserveDrawingBuffer: true, alpha: true }}
             shadows={false}
             className="w-full h-full"
-            style={{ pointerEvents: 'none' }} // Disable interactions for performance
+            style={{ pointerEvents: 'none' }} 
         >
             <Suspense fallback={null}>
                 <Stage environment="city" intensity={0.5} contactShadow={false} shadow={false} adjustCamera={true}>
@@ -40,6 +38,7 @@ const FurnitureCatalog = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { addFurniture, room } = useDesign();
+  const [filterType, setFilterType] = useState('All');
 
   const [editingItem, setEditingItem] = useState(null);
   const userInfo = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
@@ -95,6 +94,19 @@ const FurnitureCatalog = () => {
     e.dataTransfer.effectAllowed = "copy";
   };
 
+  const furnitureTypes = useMemo(() => {
+    if (!furnitureItems) return [];
+    const types = furnitureItems.map(item => item.type).filter(Boolean);
+    return ['All', ...new Set(types)];
+  }, [furnitureItems]);
+
+  const filteredItems = useMemo(() => {
+    if (filterType === 'All') {
+      return furnitureItems;
+    }
+    return furnitureItems.filter(item => item.type === filterType);
+  }, [furnitureItems, filterType]);
+
   if (loading) return <div className="p-4 text-gray-500 dark:text-gray-400">Loading catalog...</div>;
   if (error) return <div className="p-4 text-red-500">Error: {error}</div>;
 
@@ -103,18 +115,29 @@ const FurnitureCatalog = () => {
       <div className="p-4 border-b dark:border-gray-700">
         <h3 className="font-bold text-gray-800 dark:text-white">Furniture Catalog</h3>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Drag and drop items into the room</p>
+        <div className="mt-4">
+          <label htmlFor="type-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Filter by Type</label>
+          <select
+            id="type-filter"
+            name="type-filter"
+            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+          >
+            {furnitureTypes.map(type => <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>)}
+          </select>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
         <div className="grid grid-cols-1 gap-4">
-          {furnitureItems.map((item) => (
+          {filteredItems.map((item) => (
             <div
               key={item._id}
               draggable
               onDragStart={(e) => handleDragStart(e, item)}
               className="border dark:border-gray-700 rounded p-3 bg-gray-50 dark:bg-gray-700 hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing flex items-center space-x-3"
             >
-              {/* Image Preview or 3D Thumbnail */}
                 {item.modelUrl ? (
                   <HoverModelViewer modelUrl={item.modelUrl}>
                     <div className="w-16 h-16 bg-white dark:bg-gray-600 rounded flex items-center justify-center overflow-hidden flex-shrink-0 border dark:border-gray-500 relative cursor-pointer group hover:border-indigo-500 transition-colors">
@@ -139,7 +162,6 @@ const FurnitureCatalog = () => {
                   )
                 )}
 
-              {/* Details */}
               <div className="flex-1 min-w-0">
                 <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">{item.name}</h4>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">${item.price}</p>
@@ -179,8 +201,10 @@ const FurnitureCatalog = () => {
             </div>
           ))}
         </div>
-        {furnitureItems.length === 0 && (
-          <p className="text-gray-500 dark:text-gray-400 text-center mt-8">No furniture available.</p>
+        {filteredItems.length === 0 && (
+          <p className="text-gray-500 dark:text-gray-400 text-center mt-8">
+            {furnitureItems.length === 0 ? 'No furniture available.' : 'No items match the current filter.'}
+          </p>
         )}
       </div>
 

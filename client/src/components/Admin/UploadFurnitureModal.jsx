@@ -36,9 +36,8 @@ const UploadFurnitureModal = ({ onClose, onUploadSuccess }) => {
     setError('');
 
     try {
-      // 1. Upload directly to Cloudinary from client
-      // Uses unsigned preset "ml_default" or create one in your Cloudinary console.
-      const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dl1bokcc8'; // Default fallback, but it's best to configure it.
+      
+      const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dl1bokcc8'; 
       const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'furniture_GLB';
 
       const cloudData = new FormData();
@@ -53,7 +52,7 @@ const UploadFurnitureModal = ({ onClose, onUploadSuccess }) => {
 
       const modelUrl = cloudinaryResponse.data.secure_url;
 
-      // 2. Post metadata and URL to backend
+      
       const userInfo = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
       const token = userInfo?.token;
 

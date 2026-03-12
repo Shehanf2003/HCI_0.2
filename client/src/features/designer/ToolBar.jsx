@@ -4,7 +4,7 @@ import Button from '../../components/UI/Button';
 import CheckoutModal from '../../components/UI/CheckoutModal';
 
 const ToolBar = () => {
-  const { viewMode, setViewMode, room } = useDesign();
+  const { viewMode, setViewMode, room, undo, redo, canUndo, canRedo } = useDesign();
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   const takePicture = () => {
@@ -25,7 +25,7 @@ const ToolBar = () => {
 
     const itemsMap = {};
     room.furnitureItems.forEach(item => {
-      const furnId = item.furnitureId._id || item.furnitureId; // Handle populated vs non-populated
+      const furnId = item.furnitureId._id || item.furnitureId; 
       const price = item.furnitureId.price || 0;
       const name = item.furnitureId.name || 'Furniture Item';
 
@@ -47,11 +47,23 @@ const ToolBar = () => {
       <div className="bg-gray-100 p-4 border-b flex justify-between items-center dark:bg-gray-800 dark:border-gray-700 transition-colors duration-300">
         <div className="flex items-center space-x-4">
           <span className="font-semibold text-gray-700 dark:text-gray-200">Design Workspace</span>
-          {/* We removed the explicit "Move" and "Rotate" buttons because
-              it is now handled intuitively via drag and drop on the object directly
-              and the custom rotation handle. */}
+    
         </div>
         <div className="flex items-center space-x-2">
+          <Button
+            variant="secondary"
+            onClick={undo}
+            disabled={!canUndo}
+          >
+            Undo
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={redo}
+            disabled={!canRedo}
+          >
+            Redo
+          </Button>
           <Button
             variant="primary"
             onClick={() => setIsCheckoutOpen(true)}

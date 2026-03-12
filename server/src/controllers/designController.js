@@ -3,9 +3,6 @@ const Furniture = require('../models/Furniture');
 const { calculateScaledDimensions, fitsInRoom } = require('../services/furnitureService');
 const { calculateTotalDesignCost } = require('../services/pricingService');
 
-// @desc    Add furniture to room (Create/Update Design)
-// @route   POST /api/designs/:roomId/furniture
-// @access  Private
 const addFurnitureItem = async (req, res) => {
   const { furnitureId, position, rotation, scale, color, customColors } = req.body;
 
@@ -17,7 +14,6 @@ const addFurnitureItem = async (req, res) => {
       throw new Error('Not authorized');
     }
 
-    // Use provided scale or default to 1, removing arbitrary auto-scaling logic
     let finalScale = scale || { x: 1, y: 1, z: 1 };
 
     const newItem = {
@@ -29,10 +25,6 @@ const addFurnitureItem = async (req, res) => {
       customColors: customColors || {}
     };
 
-    // Optional: Validate if it fits
-    // const furniture = await Furniture.findById(furnitureId);
-    // if (!fitsInRoom(position, calculateScaledDimensions(furniture.dimensions, scale), room.dimensions)) ...
-
     room.furnitureItems.push(newItem);
     await room.save();
     const updatedRoom = await Room.findById(room._id).populate('furnitureItems.furnitureId');
@@ -43,9 +35,7 @@ const addFurnitureItem = async (req, res) => {
   }
 };
 
-// @desc    Update furniture item in design
-// @route   PUT /api/designs/:roomId/furniture/:itemId
-// @access  Private
+
 const updateFurnitureItem = async (req, res) => {
   const { position, rotation, scale, color, customColors } = req.body;
   const room = await Room.findById(req.params.roomId);
@@ -80,9 +70,6 @@ const updateFurnitureItem = async (req, res) => {
   }
 };
 
-// @desc    Remove furniture item
-// @route   DELETE /api/designs/:roomId/furniture/:itemId
-// @access  Private
 const removeFurnitureItem = async (req, res) => {
   const room = await Room.findById(req.params.roomId);
 
@@ -105,11 +92,8 @@ const removeFurnitureItem = async (req, res) => {
   }
 };
 
-// @desc    Get design details (including cost)
-// @route   GET /api/designs/:roomId
-// @access  Private
 const getDesign = async (req, res) => {
-    // This is similar to getRoomById but might include extra calculated fields
+
     const room = await Room.findById(req.params.roomId).populate('furnitureItems.furnitureId');
 
     if (room) {
@@ -118,10 +102,10 @@ const getDesign = async (req, res) => {
             throw new Error('Not authorized');
         }
 
-        // Calculate total cost
+        
         const totalCost = calculateTotalDesignCost(room.furnitureItems);
 
-        // We can attach it to the response
+       
         const response = room.toObject();
         response.totalCost = totalCost;
 

@@ -16,7 +16,7 @@ const storage = multer.memoryStorage();
 function checkFileType(file, cb) {
   const filetypes = /glb|gltf/;
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  // Accept binary for GLB
+  
   if (extname) {
     return cb(null, true);
   } else {
@@ -48,9 +48,6 @@ const uploadToCloudinary = (fileBuffer, originalname) => {
   });
 };
 
-// @desc    Update new furniture item
-// @route   PUT /api/furniture/:id
-// @access  Private/Admin
 const updateFurniture = async (req, res) => {
   try {
     const { name, type, width, height, depth, price, description, color, realWorldWidthMeters, modelUrl } = req.body;
@@ -77,12 +74,10 @@ const updateFurniture = async (req, res) => {
         furniture.realWorldWidthMeters = Number(realWorldWidthMeters);
       }
 
-      // Allow frontend to pass the updated model URL
       if (modelUrl) {
         furniture.modelUrl = modelUrl;
       }
 
-      // For backwards compatibility, but we shouldn't hit this
       if (req.file) {
         const result = await uploadToCloudinary(req.file.buffer, req.file.originalname);
         furniture.modelUrl = result.secure_url;
@@ -126,7 +121,7 @@ const uploadFurniture = async (req, res) => {
     let finalModelUrl = modelUrl;
 
     if (!finalModelUrl) {
-      // For backwards compatibility, but shouldn't be hit with client-side upload
+      
       if (!req.file) {
         return res.status(400).json({ message: 'Please provide a modelUrl or upload a GLB file' });
       }
@@ -147,7 +142,7 @@ const uploadFurniture = async (req, res) => {
       defaultColor: color || '#ffffff',
       realWorldWidthMeters: Number(realWorldWidthMeters),
       modelUrl: finalModelUrl,
-      imageUrl: '', // Will use auto-generated thumbnail
+      imageUrl: '',
     });
 
     const createdFurniture = await furniture.save();

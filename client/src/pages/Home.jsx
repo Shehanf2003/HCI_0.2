@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import AuthPanel from '../features/auth/AuthPanel';
+import { BoxSelect, CircleDollarSign, Image, Layout, CreditCard, MonitorSmartphone } from 'lucide-react';
 
 const Home = () => {
   const [isAuthPanelOpen, setIsAuthPanelOpen] = useState(false);
@@ -89,31 +90,166 @@ const Home = () => {
       
       <div className="py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
-            variants={scrollAnimation}
-            className="flex flex-col md:flex-row items-center gap-12 bg-white/60 dark:bg-black/40 backdrop-blur-lg border border-black/10 dark:border-white/10 rounded-2xl p-8 md:p-12 shadow-2xl transition-colors duration-300"
-          >
-            <div className="md:w-1/2">
-              <div className="bg-gray-200 dark:bg-black/50 border border-black/20 dark:border-white/20 aspect-video rounded-xl shadow-inner flex items-center justify-center transition-colors duration-300">
-                <span className="text-gray-500 dark:text-gray-400 font-medium">[ 2D Layout Interface Preview ]</span>
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-serif font-bold text-gray-900 dark:text-white mb-4">System User Manual</h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+              Master the interior design workflow in three simple steps.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Part 1: Setup */}
+            <motion.div 
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={scrollAnimation}
+              className="bg-white/60 dark:bg-black/40 backdrop-blur-lg border border-black/10 dark:border-white/10 rounded-2xl p-6 shadow-xl flex flex-col transition-colors duration-300"
+            >
+              <div className="aspect-video bg-gray-200 dark:bg-gray-700 rounded-xl mb-6 flex items-center justify-center relative overflow-hidden group">
+                {/* Placeholder for GIF 1 */}
+                <div className="text-gray-500 dark:text-gray-400 text-sm font-medium text-center p-4">
+                  [Insert GIF: Room Setup]
+                  <br/>
+                  <span className="text-xs opacity-75">(e.g., /assets/step1-setup.gif)</span>
+                </div>
               </div>
-            </div>
-            <div className="md:w-1/2 text-gray-900 dark:text-white">
-              <h2 className="text-4xl font-serif font-bold mb-6">Manage Your Portfolios</h2>
-              <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
-                Store room specifications including size, shape, and color schemes. Save completed designs for future consultations and edit existing layouts with ease.
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">1. Define Your Space</h3>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
+                Start by creating a new design. Set your room dimensions, choose a template, and customize wall colors and textures to match the real environment.
               </p>
-              <Link to="/portfolio" className="text-amber-600 dark:text-amber-400 font-semibold hover:text-amber-500 dark:hover:text-amber-300 transition flex items-center gap-2">
-                View Sample Portfolios <span>&rarr;</span>
-              </Link>
-            </div>
-          </motion.div>
+              <ul className="text-sm text-gray-500 dark:text-gray-400 space-y-2 list-disc pl-5">
+                <li>Input custom room dimensions (LxWxH).</li>
+                <li>Select from various room templates.</li>
+                <li>Customize wall colors and floor textures.</li>
+              </ul>
+            </motion.div>
+
+            {/* Part 2: Design */}
+            <motion.div 
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={{...scrollAnimation, visible: { ...scrollAnimation.visible, transition: { duration: 0.8, delay: 0.2 } }}}
+              className="bg-white/60 dark:bg-black/40 backdrop-blur-lg border border-black/10 dark:border-white/10 rounded-2xl p-6 shadow-xl flex flex-col transition-colors duration-300"
+            >
+              <div className="aspect-video bg-gray-200 dark:bg-gray-700 rounded-xl mb-6 flex items-center justify-center relative overflow-hidden group">
+                {/* Placeholder for GIF 2 */}
+                <div className="text-gray-500 dark:text-gray-400 text-sm font-medium text-center p-4">
+                  [Insert GIF: Furniture Placement]
+                  <br/>
+                  <span className="text-xs opacity-75">(e.g., /assets/step2-design.gif)</span>
+                </div>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">2. Furnish & Style</h3>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
+                Open the catalog and drag furniture into your room. Use the properties panel to resize items, change colors, and position them precisely in 2D or 3D view.
+              </p>
+              <ul className="text-sm text-gray-500 dark:text-gray-400 space-y-2 list-disc pl-5">
+                <li>Browse furniture with type filtering.</li>
+                <li>Drag & drop items with collision checks.</li>
+                <li>Fine-tune position, scale, and colors.</li>
+              </ul>
+            </motion.div>
+
+            {/* Part 3: Visualize */}
+            <motion.div 
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={{...scrollAnimation, visible: { ...scrollAnimation.visible, transition: { duration: 0.8, delay: 0.4 } }}}
+              className="bg-white/60 dark:bg-black/40 backdrop-blur-lg border border-black/10 dark:border-white/10 rounded-2xl p-6 shadow-xl flex flex-col transition-colors duration-300"
+            >
+              <div className="aspect-video bg-gray-200 dark:bg-gray-700 rounded-xl mb-6 flex items-center justify-center relative overflow-hidden group">
+                {/* Placeholder for GIF 3 */}
+                <div className="text-gray-500 dark:text-gray-400 text-sm font-medium text-center p-4">
+                  [Insert GIF: 3D Walkthrough]
+                  <br/>
+                  <span className="text-xs opacity-75">(e.g., /assets/step3-visualize.gif)</span>
+                </div>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">3. Visualize & Save</h3>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
+                Experience your design in immersive 3D. Save your project to your portfolio to share with clients or edit later.
+              </p>
+              <ul className="text-sm text-gray-500 dark:text-gray-400 space-y-2 list-disc pl-5">
+                <li>Toggle immersive 3D visualization.</li>
+                <li>Generate cost estimates for furniture.</li>
+                <li>Capture snapshots of your design.</li>
+              </ul>
+            </motion.div>
+          </div>
         </div>
       </div>
 
+      {/* Comprehensive Capabilities Section */}
+      <div className="py-20 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 transition-colors duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-serif font-bold text-gray-900 dark:text-white mb-4">
+              Comprehensive System Capabilities
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              Built with advanced tools to streamline your interior design process from concept to completion.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                title: "Smart Collision Logic",
+                desc: "Intelligent algorithms prevent furniture overlap and ensure realistic placement within room boundaries.",
+                icon: <BoxSelect className="h-6 w-6" />,
+                color: "text-blue-600 dark:text-blue-400",
+                bg: "bg-blue-100 dark:bg-blue-900/30"
+              },
+              {
+                title: "Real-time Costing",
+                desc: "Instant budget estimation updates as you add or remove furniture items from your design.",
+                icon: <CircleDollarSign className="h-6 w-6" />,
+                color: "text-green-600 dark:text-green-400",
+                bg: "bg-green-100 dark:bg-green-900/30"
+              },
+              {
+                title: "Custom Textures",
+                desc: "Upload your own texture files to visualize specific wallpapers, floorings, or fabric patterns.",
+                icon: <Image className="h-6 w-6" />,
+                color: "text-purple-600 dark:text-purple-400",
+                bg: "bg-purple-100 dark:bg-purple-900/30"
+              },
+              {
+                title: "Dual-View Workspace",
+                desc: "Seamlessly toggle between precise 2D floor planning and immersive 3D walkthrough modes.",
+                icon: <Layout className="h-6 w-6" />,
+                color: "text-amber-600 dark:text-amber-400",
+                bg: "bg-amber-100 dark:bg-amber-900/30"
+              },
+              {
+                title: "Snapshot & Checkout",
+                desc: "Capture high-res renderings of your design and export furniture lists for purchasing.",
+                icon: <CreditCard className="h-6 w-6" />,
+                color: "text-red-600 dark:text-red-400",
+                bg: "bg-red-100 dark:bg-red-900/30"
+              },
+              {
+                title: "Responsive Studio",
+                desc: "Access your designs from anywhere with a fully responsive interface adapted for tablets and desktops.",
+                icon: <MonitorSmartphone className="h-6 w-6" />,
+                color: "text-cyan-600 dark:text-cyan-400",
+                bg: "bg-cyan-100 dark:bg-cyan-900/30"
+              }
+            ].map((feature, index) => (
+              <div key={index} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow">
+                <div className={`w-12 h-12 ${feature.bg} rounded-lg flex items-center justify-center mb-4 ${feature.color}`}>
+                  {feature.icon}
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">{feature.title}</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">{feature.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
       
       <footer className="bg-white/80 dark:bg-black/60 backdrop-blur-xl border-t border-black/10 dark:border-white/10 py-12 mt-auto transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center text-gray-600 dark:text-gray-400">

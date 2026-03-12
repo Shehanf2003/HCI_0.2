@@ -1,23 +1,20 @@
-// server/src/services/roomService.js
-
 /**
  * Calculates the floor area of a room
- * @param {Number} length
- * @param {Number} width
+ * @param {Object} dimensions - { length, width }
  * @returns {Number} Area in square units
  */
-const calculateArea = (length, width) => {
+const calculateArea = (dimensions) => {
+  const { length, width } = dimensions;
   return length * width;
 };
 
 /**
  * Calculates the volume of a room
- * @param {Number} length
- * @param {Number} width
- * @param {Number} height
+ * @param {Object} dimensions - { length, width, height }
  * @returns {Number} Volume in cubic units
  */
-const calculateVolume = (length, width, height) => {
+const calculateVolume = (dimensions) => {
+  const { length, width, height } = dimensions;
   return length * width * height;
 };
 
@@ -27,10 +24,13 @@ const calculateVolume = (length, width, height) => {
  * @returns {boolean}
  */
 const isValidRoom = (dimensions) => {
+  if (!dimensions) return false;
   const { length, width, height } = dimensions;
-  // Example limits
+
+  if (!length || !width || !height) return false;
+
   if (length < 1 || width < 1 || height < 1) return false;
-  if (length > 100 || width > 100 || height > 20) return false; // Arbitrary max limits
+  if (length > 100 || width > 100 || height > 20) return false;
   return true;
 };
 

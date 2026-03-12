@@ -35,11 +35,10 @@ const PropertiesPanel = () => {
   const handleChange = (field, value, subfield = null) => {
     if (!selectedItem) return;
 
-    // If changing color, enter paint mode
     if (field === 'color') {
       setActivePaintColor(value);
       setIsPaintMode(true);
-      return; // We don't update the base color anymore, we just enter paint mode to color specific meshes
+      return; 
     }
 
     let updates = {};
@@ -191,19 +190,19 @@ const PropertiesPanel = () => {
         <h4 className="text-sm font-medium mb-2">Position</h4>
         <div className="grid grid-cols-3 gap-2">
           <Input
-            label="X"
+            label="Left/Right (x)"
             type="number"
             value={selectedItem.position.x}
             onChange={(e) => handleChange('position', e.target.value, 'x')}
           />
           <Input
-            label="Y"
+            label="Elevation (y)"
             type="number"
             value={selectedItem.position.y}
             onChange={(e) => handleChange('position', e.target.value, 'y')}
           />
           <Input
-            label="Z"
+            label="Front/Back (z)"
             type="number"
             value={selectedItem.position.z}
             onChange={(e) => handleChange('position', e.target.value, 'z')}
@@ -215,21 +214,21 @@ const PropertiesPanel = () => {
         <h4 className="text-sm font-medium mb-2">Scale</h4>
         <div className="grid grid-cols-3 gap-2">
           <Input
-            label="X"
+            label="Width (x)"
             type="number"
             step="0.1"
             value={selectedItem.scale.x}
             onChange={(e) => handleChange('scale', e.target.value, 'x')}
           />
           <Input
-            label="Y"
+            label="Height (y)"
             type="number"
             step="0.1"
             value={selectedItem.scale.y}
             onChange={(e) => handleChange('scale', e.target.value, 'y')}
           />
           <Input
-            label="Z"
+            label="Depth (z)"
             type="number"
             step="0.1"
             value={selectedItem.scale.z}

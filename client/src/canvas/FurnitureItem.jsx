@@ -23,24 +23,22 @@ class ModelErrorBoundary extends React.Component {
   }
 }
 
-// --------------------------------------------------------
-// 1. GLTFModel Component (Handles the 3D mesh, colors, and centering)
-// --------------------------------------------------------
+
 const GLTFModel = ({ url, customColors, realWorldWidthMeters, onMeshClick }) => {
   const { scene } = useGLTF(url);
 
-  // Deep clone scene and materials ONCE
+  
   const clonedScene = useMemo(() => {
     const clone = scene.clone();
     clone.traverse((child) => {
       if (child.isMesh && child.material) {
         child.material = child.material.clone();
         
-        // Base visual adjustments
-        child.castShadow = true;
-        child.receiveShadow = false; // Prevents harsh artifacts
         
-        // Enhance fabrics
+        child.castShadow = true;
+        child.receiveShadow = false; 
+        
+        
         if (child.material.isMeshStandardMaterial) {
           child.material.roughness = 0.8;
           child.material.metalness = 0.05;
@@ -50,7 +48,7 @@ const GLTFModel = ({ url, customColors, realWorldWidthMeters, onMeshClick }) => 
     return clone;
   }, [scene]);
 
-  // Calculate bounding box and required transforms ONCE declaratively
+  
   const transform = useMemo(() => {
     const box = new Box3().setFromObject(scene);
     const size = new Vector3();
@@ -66,13 +64,13 @@ const GLTFModel = ({ url, customColors, realWorldWidthMeters, onMeshClick }) => 
       scale: [scaleFactor, scaleFactor, scaleFactor],
       position: [
         -center.x * scaleFactor,
-        -box.min.y * scaleFactor, // Align the very bottom of the model to Y=0
+        -box.min.y * scaleFactor, 
         -center.z * scaleFactor
       ]
     };
   }, [scene, realWorldWidthMeters]);
 
-  // Apply colors correctly using Three.js standard methods
+  
   useEffect(() => {
     if (!customColors) return;
     
@@ -100,9 +98,7 @@ const GLTFModel = ({ url, customColors, realWorldWidthMeters, onMeshClick }) => 
   );
 };
 
-// --------------------------------------------------------
-// 2. Rotation Handle Component
-// --------------------------------------------------------
+
 const RotationHandle = ({ onRotate, isSelected }) => {
   if (!isSelected) return null;
 
@@ -118,9 +114,7 @@ const RotationHandle = ({ onRotate, isSelected }) => {
   );
 };
 
-// --------------------------------------------------------
-// 3. Main FurnitureItem Component (Handles dragging, rotation, and selection)
-// --------------------------------------------------------
+
 const FurnitureItem = ({ item, isSelected, onSelect }) => {
   const meshRef = useRef();
   const modelRef = useRef();

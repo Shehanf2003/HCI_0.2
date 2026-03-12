@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '../components/UI/Button';
@@ -9,6 +9,50 @@ import UploadTextureModal from '../components/UI/UploadTextureModal';
 import toast from 'react-hot-toast';
 import { confirmToast } from '../utils/confirmToast';
 import { ROOM_TEMPLATES } from '../utils/roomTemplates';
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
+
+const LoadingSpinner = () => (
+  <div className="flex justify-center items-center py-10">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+  </div>
+);
+
+const RoomPreview = ({ dimensions }) => {
+  const { length, width, height } = dimensions;
+  // Calculate camera position roughly based on room size
+  const maxDim = Math.max(length, width, height);
+  const camPos = maxDim * 1.5;
+
+  return (
+    <Canvas frameloop="demand" camera={{ position: [camPos, camPos, camPos], fov: 50 }}>
+      <ambientLight intensity={0.6} />
+      <pointLight position={[10, 10, 10]} intensity={0.8} />
+      <Suspense fallback={null}>
+        <group position={[0, -height / 4, 0]}>
+           {/* Floor */}
+           <mesh rotation={[-Math.PI / 2, 0, 0]}>
+              <planeGeometry args={[length, width]} />
+              <meshStandardMaterial color="#d1d5db" />
+           </mesh>
+           {/* Room Volume (Wireframe) */}
+           <mesh position={[0, height / 2, 0]}>
+              <boxGeometry args={[length, height, width]} />
+              <meshStandardMaterial color="#60a5fa" wireframe transparent opacity={0.5} />
+           </mesh>
+        </group>
+        <OrbitControls autoRotate autoRotateSpeed={2} enableZoom={false} enablePan={false} />
+      </Suspense>
+    </Canvas>
+  );
+};
+
+const AdminActions = ({ onUploadFurniture, onUploadTexture }) => (
+  <div className="flex items-center space-x-2">
+    <Button variant="secondary" onClick={onUploadFurniture}>Upload Furniture</Button>
+    <Button variant="secondary" onClick={onUploadTexture}>Upload Texture</Button>
+  </div>
+);
 
 const Dashboard = () => {
   const [rooms, setRooms] = useState([]);
@@ -16,8 +60,6 @@ const Dashboard = () => {
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
-  const [homeBgUrl, setHomeBgUrl] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showTextureModal, setShowTextureModal] = useState(false);
   const [editingRoom, setEditingRoom] = useState(null);
@@ -49,20 +91,8 @@ const Dashboard = () => {
     }
   };
 
-  const fetchConfig = async () => {
-    try {
-      const { data } = await axios.get('/api/config');
-      if (data && data.homeBackgroundUrl) {
-        setHomeBgUrl(data.homeBackgroundUrl);
-      }
-    } catch (error) {
-      console.error('Failed to fetch config', error);
-    }
-  };
-
   useEffect(() => {
     fetchRooms();
-    fetchConfig();
   }, []);
 
   const handleCreateRoom = async (e) => {
@@ -141,87 +171,97 @@ const Dashboard = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleUpdateConfig = async (e) => {
-    e.preventDefault();
-    try {
-      const token = localStorage.getItem('token');
-      const config = { headers: { Authorization: `Bearer ${token}` } };
-      await axios.put('/api/config', { homeBackgroundUrl: homeBgUrl }, config);
-      setIsConfigModalOpen(false);
-      toast.success('Home background updated successfully!');
-    } catch (err) {
-      toast.error(err.response?.data?.message || err.message);
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pt-20 transition-colors duration-300">
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div className="min-h-screen pt-20 font-sans transition-colors duration-300">
+    <div 
+      className="fixed inset-0 z-[-1] bg-cover bg-center"
+      style={{ backgroundImage: "url('/assets/hero-bg.jpg')" }}
+      />
+      <div className="fixed inset-0 z-[-1] bg-gray-100/80 dark:bg-gray-900/80 backdrop-blur-sm" />
+
+      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 relative z-10">
         <div className="px-4 py-6 sm:px-0">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Your Designs</h1>
-            <div className="flex space-x-4">
-              <button
-                onClick={() => setIsConfigModalOpen(true)}
-                className="bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 px-4 py-2 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition"
-              >
-                Update Home Background
-              </button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Your Designs</h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">Manage your projects or start a new one.</p>
+            </div>
+            <div className="flex items-center space-x-4">
               {isAdmin && (
-                <>
-                  <Button onClick={() => setShowUploadModal(true)}>Upload Furniture</Button>
-                  <Button onClick={() => setShowTextureModal(true)}>Upload Texture</Button>
-                </>
+                <AdminActions 
+                  onUploadFurniture={() => setShowUploadModal(true)}
+                  onUploadTexture={() => setShowTextureModal(true)}
+                />
               )}
               <Button onClick={() => setIsModalOpen(true)}>Create New Design</Button>
             </div>
           </div>
 
           {loading ? (
-            <p className="dark:text-white">Loading...</p>
+            <LoadingSpinner />
           ) : error ? (
-            <p className="text-red-500">{error}</p>
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-center dark:bg-red-900/30 dark:border-red-700 dark:text-red-300">
+              <strong className="font-bold">Error: </strong>
+              <span className="block sm:inline">{error}</span>
+            </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {rooms.map((room) => (
-                <div key={room._id} className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg transition-colors duration-300">
-                  <div className="px-4 py-5 sm:p-6">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white truncate">
-                      {room.name}
-                    </h3>
-                    <div className="mt-2 max-w-xl text-sm text-gray-500 dark:text-gray-400">
-                      <p>Dimensions: {room.dimensions.length}x{room.dimensions.width}x{room.dimensions.height}</p>
+                <div key={room._id} className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-md overflow-hidden shadow-lg rounded-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col">
+                  <div className="h-40 bg-gray-200 dark:bg-gray-700 flex items-center justify-center relative cursor-grab active:cursor-grabbing">
+                    <RoomPreview dimensions={room.dimensions} />
+                  </div>
+                  <div className="p-5 flex-grow flex flex-col">
+                    <div className="flex-grow">
+                      <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white truncate">
+                        {room.name}
+                      </h3>
+                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        {room.dimensions.length}m x {room.dimensions.width}m x {room.dimensions.height}m
+                      </p>
                     </div>
-                    <div className="mt-4 flex items-center justify-between">
+                    <div className="mt-5 flex items-center justify-between">
                       <Link
                         to={`/design-studio/${room._id}`}
-                        className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors"
+                        className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600"
                       >
-                        Open Design &rarr;
+                        Open
                       </Link>
                       <div className="flex space-x-3">
                         <button
                           onClick={() => openEditModal(room)}
-                          className="text-sm text-gray-600 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400 font-medium"
+                          className="p-2 rounded-full text-gray-500 hover:bg-gray-200 hover:text-indigo-600 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-indigo-400 transition"
+                          title="Edit"
                         >
-                          Edit
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                         </button>
                         <button
                           onClick={() => handleDeleteRoom(room._id)}
-                          className="text-sm text-gray-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 font-medium"
+                          className="p-2 rounded-full text-gray-500 hover:bg-gray-200 hover:text-red-600 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-red-400 transition"
+                          title="Delete"
                         >
-                          Delete
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                         </button>
                       </div>
                     </div>
                   </div>
                 </div>
               ))}
-              {rooms.length === 0 && (
-                <p className="text-gray-500 dark:text-gray-400 col-span-full text-center py-10">
-                  No designs yet. Create one to get started!
-                </p>
-              )}
+            </div>
+          )}
+
+          {!loading && rooms.length === 0 && (
+            <div className="text-center col-span-full py-16 bg-white/50 dark:bg-gray-800/50 rounded-lg shadow-inner">
+              <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+              <h3 className="mt-2 text-lg font-medium text-gray-900 dark:text-white">No designs yet</h3>
+              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by creating a new design.</p>
+              <div className="mt-6">
+                <Button onClick={() => setIsModalOpen(true)}>
+                  Create New Design
+                </Button>
+              </div>
             </div>
           )}
         </div>
@@ -229,15 +269,7 @@ const Dashboard = () => {
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create New Design">
         <form onSubmit={handleCreateRoom} className="space-y-4">
-          <Input
-            label="Design Name"
-            id="roomName"
-            value={newRoom.name}
-            onChange={(e) => setNewRoom({ ...newRoom, name: e.target.value })}
-            required
-          />
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Start from Template</label>
             <select
                 className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 value={newRoom.templateId}
@@ -258,6 +290,13 @@ const Dashboard = () => {
                 ))}
             </select>
           </div>
+          <Input
+            label="Design Name"
+            id="roomName"
+            value={newRoom.name}
+            onChange={(e) => setNewRoom({ ...newRoom, name: e.target.value })}
+            required
+          />
           <div className="grid grid-cols-3 gap-4">
             <Input
               label="Length (m)"
@@ -337,22 +376,6 @@ const Dashboard = () => {
             </div>
           </form>
         )}
-      </Modal>
-
-      <Modal isOpen={isConfigModalOpen} onClose={() => setIsConfigModalOpen(false)} title="Update Home Background">
-        <form onSubmit={handleUpdateConfig}>
-          <Input
-            label="Background Image URL"
-            id="bgUrl"
-            value={homeBgUrl}
-            onChange={(e) => setHomeBgUrl(e.target.value)}
-            required
-            placeholder="https://example.com/image.jpg"
-          />
-          <div className="mt-4 flex justify-end">
-            <Button type="submit">Save Changes</Button>
-          </div>
-        </form>
       </Modal>
 
       {showUploadModal && (

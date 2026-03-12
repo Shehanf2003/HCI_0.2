@@ -3,14 +3,13 @@ import { useDesign } from '../context/DesignContext';
 import * as THREE from 'three';
 import { useLoader } from '@react-three/fiber';
 
-// 1. A dedicated component that safely handles a single texture URL
 const TexturedMaterial = ({ url, repeatX, repeatY }) => {
-  // Automatically suspends and fetches the image, bypassing cache bugs
+ 
   const texture = useLoader(THREE.TextureLoader, url, (loader) => {
     loader.setCrossOrigin('anonymous');
   });
 
-  // Apply the tiling configuration
+  
   useLayoutEffect(() => {
     if (texture) {
       texture.wrapS = THREE.RepeatWrapping;
@@ -20,7 +19,6 @@ const TexturedMaterial = ({ url, repeatX, repeatY }) => {
     }
   }, [texture, repeatX, repeatY]);
 
-  // We set the base color to white so the texture colors shine through accurately
   return <meshStandardMaterial map={texture} color="#ffffff" side={THREE.DoubleSide} />;
 };
 
@@ -45,10 +43,10 @@ const Room = () => {
 
   return (
     <group>
-      {/* Floor */}
+    
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
         <planeGeometry args={[length, width]} />
-        {/* React will cleanly swap materials based on whether a URL exists! */}
+        
         {floorTexture ? (
           <TexturedMaterial url={floorTexture} repeatX={length} repeatY={width} />
         ) : (
@@ -56,7 +54,6 @@ const Room = () => {
         )}
       </mesh>
 
-      {/* Back Wall (negative Z) */}
       <mesh position={[0, halfHeight, -halfWidth]} receiveShadow>
         <planeGeometry args={[length, height]} />
         {wallTexture ? (
@@ -66,7 +63,6 @@ const Room = () => {
         )}
       </mesh>
 
-      {/* Left Wall (negative X) */}
       <mesh position={[-halfLength, halfHeight, 0]} rotation={[0, Math.PI / 2, 0]} receiveShadow>
         <planeGeometry args={[width, height]} />
         {wallTexture ? (
@@ -76,7 +72,7 @@ const Room = () => {
         )}
       </mesh>
 
-      {/* Right Wall (positive X) */}
+      
       <mesh position={[halfLength, halfHeight, 0]} rotation={[0, -Math.PI / 2, 0]} receiveShadow>
         <planeGeometry args={[width, height]} />
         {wallTexture ? (

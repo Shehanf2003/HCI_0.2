@@ -12,7 +12,7 @@ const roomSchema = mongoose.Schema(
       required: true,
       default: 'My Room Design',
     },
-    // Room Specifications
+    
     dimensions: {
       length: { type: Number, required: true }, // x
       width: { type: Number, required: true },  // z
@@ -28,7 +28,7 @@ const roomSchema = mongoose.Schema(
       wallTexture: { type: String, default: '' },
       floorTexture: { type: String, default: '' },
     },
-    // Design Layout (Furniture placement)
+   
     furnitureItems: [
       {
         furnitureId: {
@@ -52,11 +52,11 @@ const roomSchema = mongoose.Schema(
           z: { type: Number, default: 1 },
         },
         color: {
-          type: String, // Override default color if needed
+          type: String, 
         },
         customColors: {
           type: Map,
-          of: String, // Map of meshName -> color hex string
+          of: String, 
           default: {},
         },
       },

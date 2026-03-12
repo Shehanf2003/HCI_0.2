@@ -1,14 +1,10 @@
 const AppConfig = require('../models/AppConfig');
 
-// @desc    Get global app configuration
-// @route   GET /api/config
-// @access  Public
 const getConfig = async (req, res) => {
   try {
-    // Find the first document. Since we only want one config, we can just grab the first one.
+
     let config = await AppConfig.findOne();
 
-    // If no config exists, create a default one
     if (!config) {
       config = await AppConfig.create({});
     }
@@ -19,9 +15,6 @@ const getConfig = async (req, res) => {
   }
 };
 
-// @desc    Update global app configuration
-// @route   PUT /api/config
-// @access  Private
 const updateConfig = async (req, res) => {
   const { homeBackgroundUrl } = req.body;
 

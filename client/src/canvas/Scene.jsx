@@ -31,7 +31,7 @@ const Scene = () => {
                 enableRotate={viewMode === '3D'}
                 enableZoom={true}
                 enablePan={true}
-                maxPolarAngle={viewMode === '3D' ? Math.PI / 2 : 0} // Prevent going below ground
+                maxPolarAngle={viewMode === '3D' ? Math.PI / 2 : 0} 
                 target={[0, 1, 0]}
             />
 
@@ -42,7 +42,7 @@ const Scene = () => {
                 <Room />
                 {room && room.furnitureItems && room.furnitureItems.map((item) => (
                     <FurnitureItem
-                        key={item._id || Math.random()} // Fallback key if no _id
+                        key={item._id || Math.random()} 
                         item={item}
                         isSelected={selectedFurnitureId === item._id}
                         onSelect={setSelectedFurnitureId}
