@@ -12,7 +12,7 @@ const getRoomById = async (req, res) => {
 
   if (room) {
    
-    if (room.user.toString() !== req.user._id.toString()) {
+    if (room.user.toString() !== req.user._id.toString() && !req.user.isAdmin) {
       res.status(401);
       throw new Error('Not authorized to access this room');
     }
@@ -51,7 +51,7 @@ const updateRoomSpecs = async (req, res) => {
   const room = await Room.findById(req.params.id);
 
   if (room) {
-    if (room.user.toString() !== req.user._id.toString()) {
+    if (room.user.toString() !== req.user._id.toString() && !req.user.isAdmin) {
       res.status(401);
       throw new Error('Not authorized');
     }
@@ -84,7 +84,7 @@ const deleteRoom = async (req, res) => {
   const room = await Room.findById(req.params.id);
 
   if (room) {
-    if (room.user.toString() !== req.user._id.toString()) {
+    if (room.user.toString() !== req.user._id.toString() && !req.user.isAdmin) {
       res.status(401);
       throw new Error('Not authorized');
     }

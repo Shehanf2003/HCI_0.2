@@ -21,7 +21,7 @@ function App() {
 
   return (
     <div ref={containerRef} className="relative w-full min-h-screen">
-      <Router>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Toaster position="top-right" />
         <Navbar />
         

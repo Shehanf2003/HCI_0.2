@@ -57,6 +57,7 @@ const updateFurnitureItem = async (req, res) => {
           if (customColors !== undefined) item.customColors = customColors;
 
           room.furnitureItems[itemIndex] = item;
+          room.markModified('furnitureItems');
           await room.save();
           const updatedRoom = await Room.findById(room._id).populate('furnitureItems.furnitureId');
           res.json(updatedRoom);
@@ -106,7 +107,7 @@ const getDesign = async (req, res) => {
         const totalCost = calculateTotalDesignCost(room.furnitureItems);
 
        
-        const response = room.toObject();
+        const response = room.toJSON();
         response.totalCost = totalCost;
 
         res.json(response);

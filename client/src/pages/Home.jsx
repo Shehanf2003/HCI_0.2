@@ -10,7 +10,6 @@ const Home = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // Check if we were redirected here to login
     const searchParams = new URLSearchParams(location.search);
     if (searchParams.get('login') === 'true') {
       setIsAuthPanelOpen(true);
@@ -48,7 +47,6 @@ const Home = () => {
           <source src="/assets/furniture-showcase.mp4" type="video/mp4" />
         </video>
         
-        {/* Overlay: Whiteish in light mode, Dark in dark mode */}
         <div className="absolute inset-0 bg-white/80 dark:bg-black/50 transition-colors duration-500"></div>
       </div>
 
@@ -98,7 +96,6 @@ const Home = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Part 1: Setup */}
             <motion.div 
               initial="hidden"
               whileInView="visible"
@@ -107,7 +104,6 @@ const Home = () => {
               className="bg-white/60 dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-2xl p-6 shadow-xl flex flex-col transition-colors duration-300"
             >
               <div className="aspect-video bg-gray-200 dark:bg-gray-700 rounded-xl mb-6 flex items-center justify-center relative overflow-hidden group">
-                {/* Placeholder for GIF 1 */}
                 <div className="text-gray-500 dark:text-gray-400 text-sm font-medium text-center p-4">
                   [Insert GIF: Room Setup]
                   <br/>
@@ -125,7 +121,6 @@ const Home = () => {
               </ul>
             </motion.div>
 
-            {/* Part 2: Design */}
             <motion.div 
               initial="hidden"
               whileInView="visible"
@@ -134,7 +129,6 @@ const Home = () => {
               className="bg-white/60 dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-2xl p-6 shadow-xl flex flex-col transition-colors duration-300"
             >
               <div className="aspect-video bg-gray-200 dark:bg-gray-700 rounded-xl mb-6 flex items-center justify-center relative overflow-hidden group">
-                {/* Placeholder for GIF 2 */}
                 <div className="text-gray-500 dark:text-gray-400 text-sm font-medium text-center p-4">
                   [Insert GIF: Furniture Placement]
                   <br/>
@@ -152,7 +146,6 @@ const Home = () => {
               </ul>
             </motion.div>
 
-            {/* Part 3: Visualize */}
             <motion.div 
               initial="hidden"
               whileInView="visible"
@@ -161,7 +154,6 @@ const Home = () => {
               className="bg-white/60 dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-2xl p-6 shadow-xl flex flex-col transition-colors duration-300"
             >
               <div className="aspect-video bg-gray-200 dark:bg-gray-700 rounded-xl mb-6 flex items-center justify-center relative overflow-hidden group">
-                {/* Placeholder for GIF 3 */}
                 <div className="text-gray-500 dark:text-gray-400 text-sm font-medium text-center p-4">
                   [Insert GIF: 3D Walkthrough]
                   <br/>
@@ -182,8 +174,7 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Comprehensive Capabilities Section */}
-      <div className="py-20 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 transition-colors duration-300">
+      <div className="py-20 bg-transparent border-t border-black/10 dark:border-white/10 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-serif font-bold text-gray-900 dark:text-white mb-4">
@@ -239,7 +230,7 @@ const Home = () => {
                 bg: "bg-cyan-100 dark:bg-cyan-900/30"
               }
             ].map((feature, index) => (
-              <div key={index} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow">
+              <div key={index} className="bg-white/60 dark:bg-black/40 p-6 rounded-xl shadow-xl border border-black/10 dark:border-white/10 hover:shadow-2xl transition-shadow backdrop-blur-md">
                 <div className={`w-12 h-12 ${feature.bg} rounded-lg flex items-center justify-center mb-4 ${feature.color}`}>
                   {feature.icon}
                 </div>

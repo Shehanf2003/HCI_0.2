@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useEffect, Suspense } from 'react';
+import React, { useState, useRef, useMemo, useEffect, useLayoutEffect, Suspense } from 'react';
 import { useThree } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import { Box3, Vector3, Plane, Raycaster } from 'three';
@@ -71,7 +71,7 @@ const GLTFModel = ({ url, customColors, realWorldWidthMeters, onMeshClick }) => 
   }, [scene, realWorldWidthMeters]);
 
   
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!customColors) return;
     
     clonedScene.traverse((child) => {
