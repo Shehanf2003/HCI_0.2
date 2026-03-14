@@ -20,28 +20,53 @@ const UploadTextureModal = ({ onClose, onUploadSuccess }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!file) {
-      setError('Please select an image file');
+      setError('Please select a file');
+      return;
+    }
+
+    // 50MB size limit check
+    if (file.size > 50 * 1024 * 1024) {
+      setError('File size must be less than 50MB');
       return;
     }
 
     setIsUploading(true);
     setError(null);
 
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('type', type);
-    formData.append('file', file);
-
     try {
+      // 1. Upload directly to Cloudinary from the frontend
+      const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dl1bokcc8'; 
+      const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'furniture_GLB';
+
+      const cloudData = new FormData();
+      cloudData.append('file', file);
+      cloudData.append('upload_preset', uploadPreset);
+
+      const cloudinaryResponse = await axios.post(
+        `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
+        cloudData
+      );
+
+      const fileUrl = cloudinaryResponse.data.secure_url;
+
+      // 2. Send the metadata and Cloudinary URL to your backend
       const token = localStorage.getItem('token');
       const config = {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
       };
 
-      await axios.post('/api/textures/upload', formData, config);
+      const payload = { 
+        name, 
+        type, 
+        url: fileUrl, 
+        modelUrl: fileUrl, 
+        imageUrl: fileUrl 
+      };
+      await axios.post('/api/textures/upload', payload, config);
+      
       setIsUploading(false);
       if (onUploadSuccess) onUploadSuccess();
       onClose();
@@ -78,7 +103,7 @@ const UploadTextureModal = ({ onClose, onUploadSuccess }) => {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Image File (.jpeg, .png)
+            File (.jpeg, .png, .glb)
           </label>
           <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md dark:border-gray-600">
             <div className="space-y-1 text-center">
@@ -88,12 +113,12 @@ const UploadTextureModal = ({ onClose, onUploadSuccess }) => {
               <div className="flex text-sm text-gray-600 dark:text-gray-400">
                 <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500 dark:bg-gray-800 dark:text-indigo-400 dark:hover:text-indigo-300">
                   <span>Upload a file</span>
-                  <input id="file-upload" name="file-upload" type="file" className="sr-only" onChange={handleFileChange} accept="image/jpeg, image/png, image/webp" />
+                  <input id="file-upload" name="file-upload" type="file" className="sr-only" onChange={handleFileChange} accept="image/jpeg, image/png, image/webp, .glb, .gltf" />
                 </label>
                 <p className="pl-1">or drag and drop</p>
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                PNG, JPG, WEBP up to 5MB
+                PNG, JPG, WEBP, GLB up to 50MB
               </p>
             </div>
           </div>

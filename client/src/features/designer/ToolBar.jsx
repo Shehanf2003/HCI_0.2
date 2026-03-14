@@ -44,42 +44,24 @@ const ToolBar = () => {
 
   return (
     <>
-      <div className="bg-gray-100 p-4 border-b flex justify-between items-center dark:bg-gray-800 dark:border-gray-700 transition-colors duration-300">
+      <div className="bg-transparent p-4 border-b flex justify-between items-center dark:border-gray-700 transition-colors duration-300">
         <div className="flex items-center space-x-4">
           <span className="font-semibold text-gray-700 dark:text-gray-200">Design Workspace</span>
-    
         </div>
         <div className="flex items-center space-x-2">
-          <Button
-            variant="secondary"
-            onClick={undo}
-            disabled={!canUndo}
-          >
+          <Button variant="secondary" onClick={undo} disabled={!canUndo}>
             Undo
           </Button>
-          <Button
-            variant="secondary"
-            onClick={redo}
-            disabled={!canRedo}
-          >
+          <Button variant="secondary" onClick={redo} disabled={!canRedo}>
             Redo
           </Button>
-          <Button
-            variant="primary"
-            onClick={() => setIsCheckoutOpen(true)}
-          >
+          <Button variant="primary" onClick={() => setIsCheckoutOpen(true)}>
             Checkout Furniture (${totalAmount.toFixed(2)})
           </Button>
-          <Button
-            variant="secondary"
-            onClick={takePicture}
-          >
+          <Button variant="secondary" onClick={takePicture}>
             Take a Picture
           </Button>
-          <Button
-            variant="secondary"
-            onClick={() => setViewMode(viewMode === '2D' ? '3D' : '2D')}
-          >
+          <Button variant="secondary" onClick={() => setViewMode(viewMode === '2D' ? '3D' : '2D')}>
             Switch to {viewMode === '2D' ? '3D' : '2D'}
           </Button>
         </div>

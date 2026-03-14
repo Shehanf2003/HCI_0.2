@@ -10,6 +10,7 @@ const apiRoutes = require('./routes/apiRoutes');
 const configRoutes = require('./routes/configRoutes');
 const furnitureRoutes = require('./routes/furnitureRoutes');
 const textureRoutes = require('./routes/textureRoutes');
+;
 const path = require('path');
 
 dotenv.config();
@@ -26,6 +27,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/config', configRoutes);
 app.use('/api/furniture', furnitureRoutes);
 app.use('/api/textures', textureRoutes);
+
 app.use('/api', apiRoutes);
 
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));

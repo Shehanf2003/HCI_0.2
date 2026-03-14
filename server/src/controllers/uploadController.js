@@ -1,52 +1,4 @@
-require('dotenv').config();
-const path = require('path');
-const multer = require('multer');
-const cloudinary = require('cloudinary').v2;
-const streamifier = require('streamifier');
 const Furniture = require('../models/Furniture');
-
-cloudinary.config({
-  cloud_name: process.env.CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.API_KEY || process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.API_SECRET || process.env.CLOUDINARY_API_SECRET,
-});
-
-const storage = multer.memoryStorage();
-
-function checkFileType(file, cb) {
-  const filetypes = /glb|gltf/;
-  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  
-  if (extname) {
-    return cb(null, true);
-  } else {
-    cb(new Error('GLB/GLTF files only!'));
-  }
-}
-
-const upload = multer({
-  storage,
-  fileFilter: function (req, file, cb) {
-    checkFileType(file, cb);
-  },
-});
-
-const uploadToCloudinary = (fileBuffer, originalname) => {
-  return new Promise((resolve, reject) => {
-    const uploadStream = cloudinary.uploader.upload_stream(
-      {
-        folder: '3d-models',
-        resource_type: 'raw',
-        public_id: `${path.parse(originalname).name}-${Date.now()}${path.extname(originalname)}`,
-      },
-      (error, result) => {
-        if (error) return reject(error);
-        resolve(result);
-      }
-    );
-    streamifier.createReadStream(fileBuffer).pipe(uploadStream);
-  });
-};
 
 const updateFurniture = async (req, res) => {
   try {
@@ -76,11 +28,6 @@ const updateFurniture = async (req, res) => {
 
       if (modelUrl) {
         furniture.modelUrl = modelUrl;
-      }
-
-      if (req.file) {
-        const result = await uploadToCloudinary(req.file.buffer, req.file.originalname);
-        furniture.modelUrl = result.secure_url;
       }
 
       const updatedFurniture = await furniture.save();
@@ -118,15 +65,8 @@ const uploadFurniture = async (req, res) => {
         return res.status(400).json({ message: 'Please provide a valid realWorldWidthMeters (> 0)' });
     }
 
-    let finalModelUrl = modelUrl;
-
-    if (!finalModelUrl) {
-      
-      if (!req.file) {
-        return res.status(400).json({ message: 'Please provide a modelUrl or upload a GLB file' });
-      }
-      const result = await uploadToCloudinary(req.file.buffer, req.file.originalname);
-      finalModelUrl = result.secure_url;
+    if (!modelUrl) {
+      return res.status(400).json({ message: 'Please provide a modelUrl' });
     }
 
     const furniture = new Furniture({
@@ -141,7 +81,7 @@ const uploadFurniture = async (req, res) => {
       description: description || '',
       defaultColor: color || '#ffffff',
       realWorldWidthMeters: Number(realWorldWidthMeters),
-      modelUrl: finalModelUrl,
+      modelUrl: modelUrl,
       imageUrl: '',
     });
 
@@ -155,7 +95,6 @@ const uploadFurniture = async (req, res) => {
 };
 
 module.exports = {
-  upload,
   uploadFurniture,
   updateFurniture,
   deleteFurniture,

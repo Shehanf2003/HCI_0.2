@@ -63,7 +63,7 @@ const Home = () => {
           </p>
           <button
             onClick={handleStartDesign}
-            className="bg-black/10 dark:bg-white/10 backdrop-blur-md border border-black/30 dark:border-white/30 text-gray-900 dark:text-white px-8 py-3 rounded-full text-lg font-semibold hover:bg-black/20 dark:hover:bg-white/20 transition shadow-lg inline-block cursor-pointer"
+            className="bg-black/10 dark:bg-white/10 border border-black/30 dark:border-white/30 text-gray-900 dark:text-white px-8 py-3 rounded-full text-lg font-semibold hover:bg-black/20 dark:hover:bg-white/20 transition shadow-lg inline-block cursor-pointer"
           >
             Enter Design Studio
           </button>
@@ -73,7 +73,7 @@ const Home = () => {
       <AuthPanel isOpen={isAuthPanelOpen} onClose={() => setIsAuthPanelOpen(false)} />
 
      
-      <div className="bg-white/60 dark:bg-black/30 backdrop-blur-md py-6 border-y border-black/10 dark:border-white/10 transition-colors duration-300">
+      <div className="bg-white/60 dark:bg-black/30 py-6 border-y border-black/10 dark:border-white/10 transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-6 text-center text-gray-700 dark:text-gray-200">
           <div className="flex flex-col items-center">
              <span className="font-semibold tracking-wide">Precise 2D Planning</span>
@@ -104,7 +104,7 @@ const Home = () => {
               whileInView="visible"
               viewport={{ once: true }}
               variants={scrollAnimation}
-              className="bg-white/60 dark:bg-black/40 backdrop-blur-lg border border-black/10 dark:border-white/10 rounded-2xl p-6 shadow-xl flex flex-col transition-colors duration-300"
+              className="bg-white/60 dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-2xl p-6 shadow-xl flex flex-col transition-colors duration-300"
             >
               <div className="aspect-video bg-gray-200 dark:bg-gray-700 rounded-xl mb-6 flex items-center justify-center relative overflow-hidden group">
                 {/* Placeholder for GIF 1 */}
@@ -131,7 +131,7 @@ const Home = () => {
               whileInView="visible"
               viewport={{ once: true }}
               variants={{...scrollAnimation, visible: { ...scrollAnimation.visible, transition: { duration: 0.8, delay: 0.2 } }}}
-              className="bg-white/60 dark:bg-black/40 backdrop-blur-lg border border-black/10 dark:border-white/10 rounded-2xl p-6 shadow-xl flex flex-col transition-colors duration-300"
+              className="bg-white/60 dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-2xl p-6 shadow-xl flex flex-col transition-colors duration-300"
             >
               <div className="aspect-video bg-gray-200 dark:bg-gray-700 rounded-xl mb-6 flex items-center justify-center relative overflow-hidden group">
                 {/* Placeholder for GIF 2 */}
@@ -158,7 +158,7 @@ const Home = () => {
               whileInView="visible"
               viewport={{ once: true }}
               variants={{...scrollAnimation, visible: { ...scrollAnimation.visible, transition: { duration: 0.8, delay: 0.4 } }}}
-              className="bg-white/60 dark:bg-black/40 backdrop-blur-lg border border-black/10 dark:border-white/10 rounded-2xl p-6 shadow-xl flex flex-col transition-colors duration-300"
+              className="bg-white/60 dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-2xl p-6 shadow-xl flex flex-col transition-colors duration-300"
             >
               <div className="aspect-video bg-gray-200 dark:bg-gray-700 rounded-xl mb-6 flex items-center justify-center relative overflow-hidden group">
                 {/* Placeholder for GIF 3 */}
@@ -251,7 +251,7 @@ const Home = () => {
         </div>
       </div>
       
-      <footer className="bg-white/80 dark:bg-black/60 backdrop-blur-xl border-t border-black/10 dark:border-white/10 py-12 mt-auto transition-colors duration-300">
+      <footer className="bg-white/80 dark:bg-black/60 border-t border-black/10 dark:border-white/10 py-12 mt-auto transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center text-gray-600 dark:text-gray-400">
           <div className="mb-4 md:mb-0">
             <span className="text-xl font-bold text-gray-900 dark:text-white tracking-wide">Apex Interiors</span>

@@ -53,12 +53,19 @@ const DesignStudioContent = () => {
     <>
       {(!isWorkspaceReady || loading) && <LoadingScreen />}
       <UserGuideModal isOpen={showGuide} onClose={handleCloseGuide} />
-    <div className="flex flex-col h-screen pt-20 bg-gray-50 dark:bg-gray-900 transition-colors duration-300 overflow-hidden">
-      <div className="flex flex-1 overflow-hidden relative">
+    <div className="flex flex-col h-screen pt-20 transition-colors duration-300 overflow-hidden relative z-0">
+      {/* Global Background Image & Overlay */}
+      <div 
+        className="fixed inset-0 z-[-1] bg-cover bg-center"
+        style={{ backgroundImage: "url('/assets/hero-bg.jpg')" }}
+      />
+      <div className="fixed inset-0 z-[-1] bg-gray-100/40 dark:bg-gray-900/40" />
+
+      <div className="flex flex-1 overflow-hidden relative z-10">
 
         {/* Left Sidebar: Furniture Catalog */}
         <div
-          className={`transition-all duration-300 ease-in-out ${isCatalogOpen ? 'w-72' : 'w-0'} bg-white dark:bg-gray-800 border-r dark:border-gray-700 flex flex-col z-20 overflow-hidden relative`}
+          className={`transition-all duration-300 ease-in-out ${isCatalogOpen ? 'w-72' : 'w-0'} bg-white/40 dark:bg-gray-800/40 border-r dark:border-gray-700 flex flex-col z-20 overflow-hidden relative`}
         >
           <div className="w-72 h-full overflow-hidden flex flex-col">
              <div className="flex-1 overflow-y-auto">
@@ -70,7 +77,7 @@ const DesignStudioContent = () => {
         {/* Catalog Toggle Button */}
         <button
             onClick={() => setIsCatalogOpen(!isCatalogOpen)}
-            className="absolute top-1/2 transform -translate-y-1/2 z-30 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-200 p-1.5 rounded-r-md shadow-md border border-l-0 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none transition-all duration-300"
+            className="absolute top-1/2 transform -translate-y-1/2 z-30 bg-white/60 dark:bg-gray-800/60 text-gray-600 dark:text-gray-200 p-1.5 rounded-r-md shadow-md border border-l-0 dark:border-gray-600 hover:bg-white/80 dark:hover:bg-gray-800/80 focus:outline-none transition-all duration-300"
             style={{ left: isCatalogOpen ? '18rem' : '0' }}
             title={isCatalogOpen ? "Minimize Catalog" : "Show Catalog"}
         >
@@ -88,7 +95,7 @@ const DesignStudioContent = () => {
         {/* Main Workspace */}
         <div className="flex-1 flex flex-col relative min-w-0 z-0">
           <ToolBar />
-          <div className="flex-1 bg-gray-200 dark:bg-gray-900 relative transition-colors duration-300">
+          <div className="flex-1 bg-transparent relative transition-colors duration-300">
             <Scene />
           </div>
         </div>
@@ -96,7 +103,7 @@ const DesignStudioContent = () => {
         {/* Properties Toggle Button */}
         <button
             onClick={() => setIsPropertiesOpen(!isPropertiesOpen)}
-            className="absolute top-1/2 transform -translate-y-1/2 z-30 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-200 p-1.5 rounded-l-md shadow-md border border-r-0 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none transition-all duration-300"
+            className="absolute top-1/2 transform -translate-y-1/2 z-30 bg-white/60 dark:bg-gray-800/60 text-gray-600 dark:text-gray-200 p-1.5 rounded-l-md shadow-md border border-r-0 dark:border-gray-600 hover:bg-white/80 dark:hover:bg-gray-800/80 focus:outline-none transition-all duration-300"
             style={{ right: isPropertiesOpen ? '18rem' : '0' }}
              title={isPropertiesOpen ? "Minimize Properties" : "Show Properties"}
         >
@@ -113,7 +120,7 @@ const DesignStudioContent = () => {
 
         {/* Right Sidebar: Properties Panel */}
         <div
-          className={`transition-all duration-300 ease-in-out ${isPropertiesOpen ? 'w-72' : 'w-0'} bg-white dark:bg-gray-800 border-l dark:border-gray-700 flex flex-col z-20 overflow-hidden`}
+          className={`transition-all duration-300 ease-in-out ${isPropertiesOpen ? 'w-72' : 'w-0'} bg-white/40 dark:bg-gray-800/40 border-l dark:border-gray-700 flex flex-col z-20 overflow-hidden`}
         >
            <div className="w-72 h-full overflow-hidden">
               <PropertiesPanel />

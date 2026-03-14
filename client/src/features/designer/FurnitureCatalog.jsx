@@ -111,7 +111,7 @@ const FurnitureCatalog = () => {
   if (error) return <div className="p-4 text-red-500">Error: {error}</div>;
 
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-gray-800 border-r dark:border-gray-700 transition-colors duration-300">
+    <div className="h-full flex flex-col bg-transparent transition-colors duration-300">
       <div className="p-4 border-b dark:border-gray-700">
         <h3 className="font-bold text-gray-800 dark:text-white">Furniture Catalog</h3>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Drag and drop items into the room</p>

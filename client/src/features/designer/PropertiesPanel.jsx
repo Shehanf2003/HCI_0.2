@@ -79,13 +79,16 @@ const PropertiesPanel = () => {
   };
 
   if (!selectedItem) {
-    if (!room) return <div className="w-full bg-gray-50 border-l p-4 dark:bg-gray-800 dark:border-gray-700 dark:text-white transition-colors duration-300">Loading...</div>;
+    if (!room) return <div className="w-full bg-transparent p-4 dark:text-white transition-colors duration-300">Loading...</div>;
 
     return (
-      <div className="w-full bg-gray-50 border-l p-4 overflow-y-auto h-full dark:bg-gray-800 dark:border-gray-700 dark:text-white transition-colors duration-300">
-        <h3 className="font-bold mb-4">Room Properties</h3>
+      <div className="w-full bg-transparent flex flex-col h-full dark:text-white transition-colors duration-300">
+        <div className="p-4 border-b dark:border-gray-700">
+          <h3 className="font-bold">Room Properties</h3>
+        </div>
 
-        <div className="mb-4">
+        <div className="p-4 overflow-y-auto flex-1">
+          <div className="mb-4">
             <h4 className="text-sm font-medium mb-2">Dimensions (m)</h4>
             <div className="grid grid-cols-1 gap-2">
                 <Input
@@ -134,6 +137,11 @@ const PropertiesPanel = () => {
                     <option key={t._id} value={t.url}>{t.name}</option>
                   ))}
                 </select>
+                {room.colorScheme?.wallTexture && (
+                  <div className="mt-2 h-24 w-full rounded-md overflow-hidden border border-gray-300 dark:border-gray-600">
+                    <img src={room.colorScheme.wallTexture} alt="Wall Texture Preview" className="h-full w-full object-cover" />
+                  </div>
+                )}
               </div>
 
               <Input
@@ -155,6 +163,11 @@ const PropertiesPanel = () => {
                     <option key={t._id} value={t.url}>{t.name}</option>
                   ))}
                 </select>
+                {room.colorScheme?.floorTexture && (
+                  <div className="mt-2 h-24 w-full rounded-md overflow-hidden border border-gray-300 dark:border-gray-600">
+                    <img src={room.colorScheme.floorTexture} alt="Floor Texture Preview" className="h-full w-full object-cover" />
+                  </div>
+                )}
               </div>
             </div>
         </div>
@@ -162,13 +175,18 @@ const PropertiesPanel = () => {
         <div className="mt-8 pt-4 border-t text-sm text-gray-500 dark:text-gray-400 dark:border-gray-700">
             <p>Select a furniture item to edit its properties.</p>
         </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full bg-gray-50 border-l p-4 overflow-y-auto h-full dark:bg-gray-800 dark:border-gray-700 dark:text-white transition-colors duration-300">
-      <h3 className="font-bold mb-4">Item Properties</h3>
+    <div className="w-full bg-transparent flex flex-col h-full dark:text-white transition-colors duration-300">
+      <div className="p-4 border-b dark:border-gray-700">
+        <h3 className="font-bold">Item Properties</h3>
+      </div>
+
+      <div className="p-4 overflow-y-auto flex-1">
 
       {selectedItem.furnitureId && selectedItem.furnitureId.name && (
         <div className="mb-4">
@@ -270,6 +288,7 @@ const PropertiesPanel = () => {
           <Button variant="secondary" onClick={() => setSelectedFurnitureId(null)}>
               Deselect Item
           </Button>
+      </div>
       </div>
     </div>
   );

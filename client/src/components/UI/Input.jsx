@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Input = ({ label, id, type = 'text', value, onChange, placeholder, required = false, min, max, step }) => {
+const Input = ({ label, id, name, type = 'text', value, onChange, placeholder, required = false, min, max, step }) => {
   return (
     <div className="mb-4">
       {label && (
@@ -11,6 +11,7 @@ const Input = ({ label, id, type = 'text', value, onChange, placeholder, require
       <input
         type={type}
         id={id}
+        name={name || id}
         value={value}
         onChange={onChange}
         placeholder={placeholder}
